@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Expgessia</string>
+    <string name="label_character_name">Имя персонажа</string>
+    <string name="error_name_empty">Имя не может быть пустым</string>
+    <string name="button_save">Сохранить</string>
+    <string name="text_level">Уровень %d</string>
+    <string name="text_score">%d очков</string>
+    <string name="text_experience">Опыт: %d/%d</string>
+</resources>
