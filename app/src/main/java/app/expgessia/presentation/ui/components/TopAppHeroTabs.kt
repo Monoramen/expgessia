@@ -1,5 +1,5 @@
-// ui/components/TopAppBarWithTabs.kt
 package app.expgessia.ui.components
+
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.expgessia.presentation.ui.theme.FalloutFontFamily
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,13 +34,14 @@ fun TopAppHeroTabs(
                 Tab.CHARACTERISTICS -> 1
                 Tab.SKILLS -> 2
             },
-            containerColor = MaterialTheme.colorScheme.inversePrimary,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            // Фон табов: темный (secondaryContainer) для контраста
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
             indicator = { tabPositions ->
                 Box(
                     modifier = Modifier
                         .tabIndicatorOffset(tabPositions[currentTab.ordinal])
-                        .height(2.dp)
+                        .height(1.dp)
                         .fillMaxWidth()
                         .background(MaterialTheme.colorScheme.primary)
                 )
@@ -48,12 +50,15 @@ fun TopAppHeroTabs(
             Tab(
                 selected = currentTab == Tab.HERO,
                 onClick = { onTabChange(Tab.HERO) },
+                modifier = Modifier.height(36.dp),
                 text = {
                     Text(
                         "HERO",
-                        fontSize = 12.sp,
+                        fontSize = 18.sp,
+                        // Используем цвет текста из TabRow, который установлен как onSurface (неоновый зеленый)
                         fontWeight = FontWeight.Medium,
-                        maxLines = 1
+                        maxLines = 1,
+                        fontFamily = FalloutFontFamily // ⭐️ Применяем шрифт
                     )
                 }
             )
@@ -61,29 +66,43 @@ fun TopAppHeroTabs(
             Tab(
                 selected = currentTab == Tab.CHARACTERISTICS,
                 onClick = { onTabChange(Tab.CHARACTERISTICS) },
+                // ⭐️ Уменьшаем внутренний padding (если нужно сжать вкладки)
+                modifier = Modifier.height(36.dp),
                 text = {
                     Text(
                         "CHARACTERISTICS",
-                        fontSize = 12.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Medium,
-                        maxLines = 1
+                        maxLines = 1,
+                        fontFamily = FalloutFontFamily // ⭐️ Применяем шрифт
                     )
                 }
             )
 
-            Tab(
-                selected = currentTab == Tab.SKILLS,
-                onClick = { onTabChange(Tab.SKILLS) },
-                text = {
-                    Text(
-                        "SKILLS",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1
-                    )
-                }
-            )
+            /* Tab(
+                            selected = currentTab == Tab.SKILLS,
+                            onClick = { onTabChange(Tab.SKILLS) },
+                            text = {
+                                Text(
+                                    "SKILLS",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    fontFamily = FalloutFontFamily // ⭐️ Применяем шрифт
+                                )
+                            }
+                        )*/
         }
+
+        // ⭐️ ДОБАВЛЕНИЕ НИЖНЕЙ ЛИНИИ ПОД ВСЕЙ TabRow
+        // Это гарантирует, что разделитель будет виден, даже если TabRow сильно сжат.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                // Используем темный цвет поверхности, чтобы он был едва заметен
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        )
     }
 }
 

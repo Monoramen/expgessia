@@ -1,25 +1,45 @@
 package app.expgessia.data.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import app.expgessia.data.converter.DateConverter
-import java.util.Date
+import app.expgessia.data.converter.TaskConverters // Импортируем наш конвертер
 
+@Entity(
+    tableName = "tasks",
+    foreignKeys = [ForeignKey(
+        entity = CharacteristicEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["characteristic_id"],
+        onDelete = ForeignKey.CASCADE
+    )]
+)
 
-@Entity(tableName = "users")
-@TypeConverters(DateConverter::class)
-data class UserEntity(
-    //@PrimaryKey(autoGenerate = true) val id: Int = 0,
-    @PrimaryKey val id: Int = 0,
-    val name: String,
-    val experience: Int,
-    val level: Int,
-    val score: Int,
-    val mana: Int,
-    val strength: Int,
-    val intelligence: Int,
-    val agility: Int,
-    val lastLogin: Date?, // Последний вход
-    val photoUri: String? = null // Добавим поле для фото
+@TypeConverters(TaskConverters::class)
+data class TaskEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+    val title: String,
+    // Добавлено:
+    val description: String,
+
+    @ColumnInfo(name = "characteristic_id")
+    val characteristicId: Int,
+
+    // Добавлено: Режим повторения (хранится как String, обрабатывается конвертером)
+    @ColumnInfo(name = "repeat_mode")
+    val repeatMode: String,
+
+    // Добавлено: Дополнительные детали повторения (например, "пн, ср, пт")
+    @ColumnInfo(name = "repeat_details")
+    val repeatDetails: String? = null,
+
+    @ColumnInfo(name = "xp_reward")
+    val xpReward: Int,
+    @ColumnInfo(name = "is_completed")
+    val isCompleted: Boolean = false,
+    @ColumnInfo(name = "scheduled_for")
+    val scheduledFor: Long? = null
 )

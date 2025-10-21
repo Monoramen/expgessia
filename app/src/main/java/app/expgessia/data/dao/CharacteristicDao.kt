@@ -1,32 +1,27 @@
-// data/dao/UserDao.kt
 package app.expgessia.data.dao
+
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
-import app.expgessia.data.entity.UserEntity
+import app.expgessia.data.entity.CharacteristicEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface UserDao {
-    @Query("SELECT * FROM users LIMIT 1")
-    suspend fun getUser(): UserEntity?
+interface CharacteristicDao {
 
-    @Query("SELECT * FROM users LIMIT 1")
-    fun getUserStream(): Flow<UserEntity?>
+    /**
+     * Возвращает все характеристики из базы данных.
+     * Использует Flow для получения обновлений в реальном времени.
+     */
+    @Query("SELECT * FROM characteristics ORDER BY id ASC")
+    fun getAllCharacteristics(): Flow<List<CharacteristicEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUser(user: UserEntity)
-
-    @Query("SELECT COUNT(*) FROM users")
-    suspend fun getUsersCount(): Int
-    @Update
-    suspend fun updateUser(user: UserEntity)
-
-    @Query("DELETE FROM users")
-    suspend fun deleteUser()
+    /**
+     * Возвращает конкретную характеристику по ее ID.
+     */
+    @Query("SELECT * FROM characteristics WHERE id = :characteristicId LIMIT 1")
+    suspend fun getCharacteristicById(characteristicId: Int): CharacteristicEntity?
 
 
-
+    @Query("SELECT icon_res_name FROM characteristics WHERE id = :id")
+    suspend fun getIconResNameById(id: Int): String?
 }

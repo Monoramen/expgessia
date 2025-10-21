@@ -2,59 +2,44 @@ package app.expgessia.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Светлая тема в стиле Fallout
-val FalloutLightPrimary = Color(0xFF2C5A2C)
-val FalloutLightOnPrimary = Color(0xFF8ABB8C)
-val FalloutLightPrimaryContainer = Color(0xFFAEDBAA)
-val FalloutLightOnPrimaryContainer = Color(0xFF002200)
-val FalloutLightSecondary = Color(0xFFA4B6A1)
-val FalloutLightOnSecondary = Color(0xFFFFFFFF)
-val FalloutLightSecondaryContainer = Color(0xFFD5E8D0)
-val FalloutLightOnSecondaryContainer = Color(0xFF101F10)
-val FalloutLightTertiary = Color(0xFF38656A)
-val FalloutLightOnTertiary = Color(0xFFFFFFFF)
-val FalloutLightTertiaryContainer = Color(0xFFBCEBF0)
-val FalloutLightOnTertiaryContainer = Color(0xFF002023)
-val FalloutLightError = Color(0xFFBA1A1A)
-val FalloutLightErrorContainer = Color(0xFFFFDAD6)
-val FalloutLightOnError = Color(0xFFFFFFFF)
-val FalloutLightOnErrorContainer = Color(0xFF410002)
-val FalloutLightBackground = Color(0xFFF8FBF8)
-val FalloutLightOnBackground = Color(0xFF191C19)
-val FalloutLightSurface = Color(0xFFF8FBF8)
-val FalloutLightOnSurface = Color(0xFF191C19)
-val FalloutLightSurfaceVariant = Color(0xFFDEE5D9)
-val FalloutLightOnSurfaceVariant = Color(0xFF424940)
-val FalloutLightOutline = Color(0xFF727970)
-val FalloutLightInverseOnSurface = Color(0xFFF0F1EC)
-val FalloutLightInverseSurface = Color(0xFF2E312E)
-val FalloutLightInversePrimary = Color(0xFF92BF8F)
+// --- Цветовая палитра в стиле Fallout Terminal (Зеленый на Темном) ---
 
-// Темная тема в стиле Fallout
-val FalloutDarkPrimary = Color(0xFF92BF8F)
-val FalloutDarkOnPrimary = Color(0xFF003900)
-val FalloutDarkPrimaryContainer = Color(0xFF005300)
-val FalloutDarkOnPrimaryContainer = Color(0xFFAEDBAA)
-val FalloutDarkSecondary = Color(0xFFB9CCB4)
-val FalloutDarkOnSecondary = Color(0xFF253424)
-val FalloutDarkSecondaryContainer = Color(0xFF3B4B3A)
-val FalloutDarkOnSecondaryContainer = Color(0xFFD5E8D0)
-val FalloutDarkTertiary = Color(0xFFA0CFD4)
-val FalloutDarkOnTertiary = Color(0xFF00363B)
-val FalloutDarkTertiaryContainer = Color(0xFF1F4D52)
-val FalloutDarkOnTertiaryContainer = Color(0xFFBCEBF0)
-val FalloutDarkError = Color(0xFFFFB4AB)
-val FalloutDarkErrorContainer = Color(0xFF93000A)
-val FalloutDarkOnError = Color(0xFF690005)
-val FalloutDarkOnErrorContainer = Color(0xFFFFDAD6)
-val FalloutDarkBackground = Color(0xFF111411)
-val FalloutDarkOnBackground = Color(0xFFC7D4A8)
-val FalloutDarkSurface = Color(0xFF111411)
-val FalloutDarkOnSurface = Color(0xFFE1E3DE)
-val FalloutDarkSurfaceVariant = Color(0xFF424940)
-val FalloutDarkOnSurfaceVariant = Color(0xFFC2C9BD)
-val FalloutDarkOutline = Color(0xFF8C9389)
-val FalloutDarkInverseOnSurface = Color(0xFF191C19)
-val FalloutDarkInverseSurface = Color(0xFFE1E3DE)
-val FalloutDarkInversePrimary = Color(0xFF2C5A2C)
+// Основные цвета
+// Неоновый зеленый для основных элементов и текста на темном фоне
+val FalloutPrimary = Color(0xFF50C115) // Яркий зеленый
+val FalloutOnPrimary = Color(0xFF000000) // Черный текст на неоновом
+val FalloutPrimaryContainer = Color(0xFF1E3A1E)
+val FalloutOnPrimaryContainer = Color(0xFF90FF60)
 
+// Вторичные цвета для акцентов и менее важных элементов (немного приглушенный зеленый)
+val FalloutSecondary = Color(0xFF79D74E)
+val FalloutOnSecondary = Color(0xFF000000)
+val FalloutSecondaryContainer = Color(0xFF283828)
+val FalloutOnSecondaryContainer = Color(0xFFB5FF8A)
+
+// Третичные цвета для тонких акцентов или приглушенного текста
+val FalloutTertiary = Color(0xFFC4D1D4) // Бледно-зеленый/серый
+val FalloutOnTertiary = Color(0xFF191C1E)
+val FalloutTertiaryContainer = Color(0xFF3E494C)
+val FalloutOnTertiaryContainer = Color(0xFFE0EDF0)
+
+// Системные цвета
+val FalloutError = Color(0xFFFF6B6B) // Ярко-красный для ошибок
+val FalloutErrorContainer = Color(0xFF680000)
+val FalloutOnError = Color(0xFF000000)
+val FalloutOnErrorContainer = Color(0xFFFFDAD6)
+
+// Фон/Поверхность
+// Очень темный, почти черный фон с оттенком зеленого
+val FalloutBackground = Color(0xFF111811)
+val FalloutOnBackground = Color(0xFF62FF00) // Неоновый зеленый текст на фоне
+val FalloutSurface = Color(0xFF192A19) // Чуть более светлая поверхность для карточек
+val FalloutOnSurface = Color(0xFF54E80B)
+val FalloutSurfaceVariant = Color(0xFF43474E)
+val FalloutOnSurfaceVariant = Color(0xFFC3C6CF)
+val FalloutOutline = Color(0xFF2D612D)
+
+// Обратные цвета (менее важны в этой эстетике)
+val FalloutInverseOnSurface = Color(0xFF191C1E)
+val FalloutInverseSurface = Color(0xFFE1E2E5)
+val FalloutInversePrimary = Color(0xFF00629D)

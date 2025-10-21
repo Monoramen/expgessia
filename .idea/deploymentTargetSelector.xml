@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-09-07T23:44:42.014902800Z">
+        <DropdownSelection timestamp="2025-10-15T18:52:20.454798400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Monoramen\.android\avd\Pixel_9.avd" />
@@ -36,6 +36,9 @@
         <DialogSelection />
       </SelectionState>
       <SelectionState runConfigName="MainActivity (2)">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="PreviewRetroComponents">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

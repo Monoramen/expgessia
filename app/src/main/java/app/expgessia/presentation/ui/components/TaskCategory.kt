@@ -82,7 +82,7 @@ fun TaskCategoryCompact(
 data class TaskItemData(
     val title: String,
     val description: String,
-    val xpReward: String,
+    val xpReward: Int,
     val isCompleted: Boolean,
     val category: String = "today" // Добавьте поле для категории
 )

@@ -1,34 +1,24 @@
 package app.expgessia.domain.repository
 
-import app.expgessia.domain.model.User
+import app.expgessia.domain.model.Characteristic
 import kotlinx.coroutines.flow.Flow
 
-interface UserRepository {
-    // Основные CRUD операции
-    fun getCurrentUser(): Flow<User?>
-    suspend fun createUser(user: User)
-    suspend fun updateUser(user: User)
-    suspend fun deleteUser()
+/**
+ * Определяет методы для работы с характеристиками.
+ * Использует доменные модели (Characteristic).
+ */
+interface CharacteristicRepository {
 
-    // Операции с характеристиками
-    suspend fun addExperience(amount: Int)
-    suspend fun addScore(amount: Int)
-    suspend fun updateMana(value: Int)
-    suspend fun updateHealth(value: Int) // Добавим здоровье позже
+    /**
+     * Получает поток всех характеристик для отображения в реальном времени.
+     */
+    fun getAllCharacteristics(): Flow<List<Characteristic>>
 
-    // Операции со статами
-    suspend fun increaseStrength(amount: Int = 1)
-    suspend fun increaseIntelligence(amount: Int = 1)
-    suspend fun increaseAgility(amount: Int = 1)
+    /**
+     * Получает конкретную характеристику по ее ID.
+     */
+    suspend fun getCharacteristicById(id: Int): Characteristic?
 
-    // Восстановление ресурсов
-    suspend fun restoreMana(amount: Int = 10)
-
-    // Проверки и утилиты
-    suspend fun hasEnoughMana(required: Int): Boolean
-    suspend fun levelUpIfPossible()
-
-    // Получение данных без Flow
-    suspend fun getCurrentUserOnce(): User?
-    suspend fun updateUserName(newName: String)
+    // Здесь можно было бы добавить методы для обновления (update) или удаления (delete),
+    // но для статичных характеристик пока достаточно чтения.
 }

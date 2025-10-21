@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface UserDao {
     @Query("SELECT * FROM users LIMIT 1")
-    suspend fun getUser(): UserEntity? // Убедитесь что это suspend fun
+    suspend fun getUser(): UserEntity?
 
     @Query("SELECT * FROM users LIMIT 1")
     fun getUserStream(): Flow<UserEntity?>

@@ -1,9 +1,34 @@
 <resources>
     <string name="app_name">Expgessia</string>
-    <string name="label_character_name">Имя персонажа</string>
-    <string name="error_name_empty">Имя не может быть пустым</string>
-    <string name="button_save">Сохранить</string>
-    <string name="text_level">Уровень %d</string>
-    <string name="text_score">%d очков</string>
-    <string name="text_experience">Опыт: %d/%d</string>
+    <string name="label_character_name">Character Name</string>
+    <string name="error_name_empty">Name cannot be empty</string>
+
+    <string name="text_level">Level: %d</string>
+    <string name="text_experience">Experience: %d</string>
+    <string name="text_money">Money: %d</string>
+
+    <!-- Новые строки для нижней навигации -->
+    <string name="nav_hero">Hero</string>
+    <string name="nav_tasks">Tasks</string>
+    <string name="nav_calendar">Calendar</string>
+    <string name="nav_stats">Stats</string>
+
+
+    <!-- Характеристики -->
+    <string name="stat_strength">Strength</string>
+    <string name="stat_perception">Perception</string>
+    <string name="stat_endurance">Endurance</string>
+    <string name="stat_charisma">Charisma</string>
+    <string name="stat_intelligence">Intelligence</string>
+    <string name="stat_agility">Agility</string>
+    <string name="stat_luck">Luck</string>
+
+    <!-- Add new task strings -->
+    <string name="label_characeristics">Characteristics:</string>
+    <string name="label_title">Title</string>
+    <string name="label_description">Description (Optional)</string>
+    <string name="label_repeat">Repeat:</string>
+    <string name="label_reward">Reward XP</string>
+    <string name="button_save">Save</string>
+
 </resources>

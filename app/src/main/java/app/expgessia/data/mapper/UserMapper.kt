@@ -8,11 +8,15 @@ fun UserEntity.toDomain(): User = User(
     name = this.name,
     experience = this.experience,
     level = this.level,
-    score = this.score,
-    mana = this.mana,
+    money = this.money,
     strength = this.strength,
+    perception = this.perception,
+    endurance = this.endurance,
+    charisma = this.charisma,
     intelligence = this.intelligence,
     agility = this.agility,
+
+    luck = this.luck,
     lastLogin = this.lastLogin,
     photoUri = this.photoUri
 )
@@ -22,11 +26,14 @@ fun User.toEntity(): UserEntity = UserEntity(
     name = this.name,
     experience = this.experience,
     level = this.level,
-    score = this.score,
-    mana = this.mana,
+    money = this.money,
     strength = this.strength,
+    perception = this.perception,
+    endurance = this.endurance,
+    charisma = this.charisma,
     intelligence = this.intelligence,
     agility = this.agility,
+    luck = this.luck,
     lastLogin = this.lastLogin,
     photoUri = this.photoUri
 )

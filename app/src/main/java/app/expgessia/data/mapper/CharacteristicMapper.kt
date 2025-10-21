@@ -1,36 +1,20 @@
 package app.expgessia.data.mapper
 
+import app.expgessia.data.entity.CharacteristicEntity
 import app.expgessia.data.entity.UserEntity
+import app.expgessia.domain.model.Characteristic
 import app.expgessia.domain.model.User
 
-fun UserEntity.toDomain(): User = User(
+fun CharacteristicEntity.toDomain(): Characteristic = Characteristic(
     id = this.id,
     name = this.name,
-    experience = this.experience,
-    level = this.level,
-    gold = this.gold,
-    energy = this.mana,
-    strength = this.strength,
-    intelligence = this.intelligence,
-    agility = this.agility,
-    perception = this.perception,
-    luck = this.luck,
-    lastLogin = this.lastLogin,
-    photoUri = this.photoUri
+    description = this.description,
+    iconResName = this.iconResName
 )
 
-fun User.toEntity(): UserEntity = UserEntity(
+fun Characteristic.toEntity(): CharacteristicEntity = CharacteristicEntity(
     id = this.id,
     name = this.name,
-    experience = this.experience,
-    level = this.level,
-    gold = this.gold,
-    mana = this.energy,
-    strength = this.strength,
-    intelligence = this.intelligence,
-    agility = this.agility,
-    perception = this.perception,
-    luck = this.luck,
-    lastLogin = this.lastLogin,
-    photoUri = this.photoUri
+    description = this.description,
+    iconResName = this.iconResName
 )

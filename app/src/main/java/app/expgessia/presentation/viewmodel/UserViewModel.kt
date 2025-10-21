@@ -28,15 +28,7 @@ class UserViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    init {
-        ensureDefaultUser()
-    }
 
-    private fun ensureDefaultUser() {
-        viewModelScope.launch {
-            userRepository.ensureDefaultUserExists()
-        }
-    }
 
     fun updateUserName(newName: String) {
         viewModelScope.launch {

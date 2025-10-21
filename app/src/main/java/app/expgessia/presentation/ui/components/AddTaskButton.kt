@@ -7,8 +7,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 
-// components/AddTaskButton.kt
 @Composable
 fun AddTaskButton(
     onClick: () -> Unit,
@@ -16,12 +16,14 @@ fun AddTaskButton(
 ) {
     FloatingActionButton(
         onClick = onClick,
-        containerColor = Color.Green,
-        contentColor = Color.White
+        // Используем цветовую схему из темы для лучшей интеграции
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        modifier = modifier
     ) {
         Icon(
             imageVector = Icons.Default.Add,
-            contentDescription = "Add task"
+            contentDescription = "Добавить задачу"
         )
     }
 }

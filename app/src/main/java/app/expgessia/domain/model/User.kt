@@ -1,19 +1,22 @@
 // domain/model/User.kt
 package app.expgessia.domain.model
 
-import java.time.LocalDateTime
 import java.util.Date
 
 data class User(
-    val id: Int = 0,
+    val id: Int = 1,
     val name: String,
+    //val sex: String,
     val experience: Int,
     val level: Int,
-    val score: Int,
-    val mana: Int,
+    val money: Int,
     val strength: Int,
+    val perception: Int,
+    val endurance: Int,
+    val charisma: Int,
     val intelligence: Int,
     val agility: Int,
+    val luck: Int,
     val lastLogin: Date?, // Последний вход
     val photoUri: String? = null // Добавим поле для фото
 ) {

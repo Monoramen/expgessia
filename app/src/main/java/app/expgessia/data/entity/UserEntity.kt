@@ -1,5 +1,6 @@
 package app.expgessia.data.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
@@ -10,16 +11,21 @@ import java.util.Date
 @Entity(tableName = "users")
 @TypeConverters(DateConverter::class)
 data class UserEntity(
-    //@PrimaryKey(autoGenerate = true) val id: Int = 0,
-    @PrimaryKey val id: Int = 0,
+
+    @PrimaryKey val id: Int = 1,
     val name: String,
     val experience: Int,
     val level: Int,
-    val score: Int,
-    val mana: Int,
+    val money: Int,
     val strength: Int,
+    val perception: Int, // add Perception
+    val endurance: Int,
+    val charisma: Int,
     val intelligence: Int,
     val agility: Int,
+    val luck: Int,
+    @ColumnInfo(name = "last_login")
     val lastLogin: Date?, // Последний вход
-    val photoUri: String? = null // Добавим поле для фото
+    @ColumnInfo(name = "photo_uri")
+        val photoUri: String? = null // Добавим поле для фото
 )
