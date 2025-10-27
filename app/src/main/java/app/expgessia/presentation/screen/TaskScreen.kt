@@ -26,7 +26,7 @@ fun TaskRoute(
 
     TaskScreen(
         tasks = tasks,
-        onTaskCheckChanged = viewModel::onTaskCheckChanged,
+        onTaskCheckClicked = viewModel::onTaskCheckClicked,
         onAddTaskClicked = onAddTaskClicked
     )
 }
@@ -36,7 +36,7 @@ fun TaskScreen(
     // 💡 Принимаем список TaskUiModel
     tasks: List<TaskUiModel>,
     onAddTaskClicked: () -> Unit,
-    onTaskCheckChanged: (Long, Boolean) -> Unit,
+    onTaskCheckClicked: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -59,7 +59,7 @@ fun TaskScreen(
                 // 💡 Передаем весь объект TaskUiModel, соответствуя сигнатуре TaskItem в Canvas
                 TaskItem(
                     task = task,
-                    onCheckClicked = onTaskCheckChanged
+                    onTaskCheckClicked = onTaskCheckClicked
                 )
             }
         }

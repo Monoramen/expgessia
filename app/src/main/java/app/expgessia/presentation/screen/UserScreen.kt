@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,10 +24,9 @@ import app.expgessia.R
 import app.expgessia.domain.model.TaskUiModel
 import app.expgessia.presentation.viewmodel.UserViewModel
 import app.expgessia.ui.components.RetroTaskCategoryCompact
-import app.expgessia.ui.components.TaskItem
 import app.expgessia.ui.components.UserCard
 
-// ⚠️ Локальная модель для статических демо-данных
+// ⚠️ Локальная модель для статических демо-данных (оставляем для подсчета count)
 private data class DemoTaskModel(
     val id: Long, // Требуется для onCheckClicked
     val title: String,
@@ -62,63 +60,9 @@ fun UserScreen(
     var showToday by remember { mutableStateOf(true) }
     var showTomorrow by remember { mutableStateOf(true) }
     var showImportant by remember { mutableStateOf(true) }
-    var showCompleted by remember { mutableStateOf(false) } // 💡 НОВОЕ СОСТОЯНИЕ ДЛЯ ЗАВЕРШЕННЫХ ЗАДАЧ
+    var showCompleted by remember { mutableStateOf(false) } // 💡 СОСТОЯНИЕ ДЛЯ ЗАВЕРШЕННЫХ ЗАДАЧ
 
-    // 💡 Временные статические задачи для демонстрации
-    var tasks by remember {
-        mutableStateOf(
-            listOf(
-                DemoTaskModel(
-                    id = 1L,
-                    title = "Learn something new",
-                    description = "anything. press when feel like it happened",
-                    xpReward = 110,
-                    isCompleted = false,
-                    category = "today",
-                    characteristicIconResName = "intelligence" // Иконка для демо
-                ),
-                DemoTaskModel(
-                    id = 2L,
-                    title = "Запланировать проект",
-                    description = "Разбить на 5 подзадач",
-                    xpReward = 80,
-                    isCompleted = false,
-                    category = "important",
-                    characteristicIconResName = "perception" // Иконка для демо
-                ),
-                DemoTaskModel(
-                    id = 3L,
-                    title = "Выпить воды",
-                    description = "Стакан 250 мл",
-                    xpReward = 5,
-                    isCompleted = true, // Эта задача завершена
-                    category = "today",
-                    characteristicIconResName = "endurance" // Иконка для демо
-                ),
-                DemoTaskModel(
-                    id = 4L,
-                    title = "Написать другу",
-                    description = "Спросить, как дела",
-                    xpReward = 10,
-                    isCompleted = false,
-                    category = "tomorrow",
-                    characteristicIconResName = "charisma" // Иконка для демо
-                )
-            )
-        )
-    }
 
-    // 💡 Локальная функция для обработки клика (обновление состояния в демо-режиме)
-    val onTaskCheckClicked: (Long, Boolean) -> Unit = { taskId, isChecked ->
-        val updatedList = tasks.map { task ->
-            if (task.id == taskId) {
-                task.copy(isCompleted = isChecked)
-            } else {
-                task
-            }
-        }
-        tasks = updatedList
-    }
 
 
     LazyColumn(
@@ -154,83 +98,45 @@ fun UserScreen(
         item {
             RetroTaskCategoryCompact(
                 title = stringResource(R.string.label_today),
-                count = tasks.count { it.category == "today" && !it.isCompleted },
+                count = 0,
                 isExpanded = showToday,
                 onToggle = { showToday = !showToday }
             )
         }
-        if (showToday) {
-            items(
-                tasks.filter { it.category == "today" && !it.isCompleted },
-                key = { it.id }) { task ->
-                TaskItem(
-                    // 💡 Передаем TaskUiModel
-                    task = task.toUiModel(),
-                    onCheckClicked = onTaskCheckClicked
-                )
-            }
-        }
+        // УДАЛЕНО: items(tasks.filter { it.category == "today" && !it.isCompleted })
 
 // Tomorrow
         item {
             RetroTaskCategoryCompact(
                 title = stringResource(R.string.label_tomorrow),
-                count = tasks.count { it.category == "tomorrow" && !it.isCompleted },
+                count = 0,
                 isExpanded = showTomorrow,
                 onToggle = { showTomorrow = !showTomorrow }
             )
         }
-        if (showTomorrow) {
-            items(
-                tasks.filter { it.category == "tomorrow" && !it.isCompleted },
-                key = { it.id }) { task ->
-                TaskItem(
-                    // 💡 Передаем TaskUiModel
-                    task = task.toUiModel(),
-                    onCheckClicked = onTaskCheckClicked
-                )
-            }
-        }
+        // УДАЛЕНО: items(tasks.filter { it.category == "tomorrow" && !it.isCompleted })
 
 // Important
         item {
             RetroTaskCategoryCompact(
                 title = stringResource(R.string.label_important),
-                count = tasks.count { it.category == "important" && !it.isCompleted },
+                count = 0,
                 isExpanded = showImportant,
                 onToggle = { showImportant = !showImportant }
             )
         }
-        if (showImportant) {
-            items(
-                tasks.filter { it.category == "important" && !it.isCompleted },
-                key = { it.id }) { task ->
-                TaskItem(
-                    // 💡 Передаем TaskUiModel
-                    task = task.toUiModel(),
-                    onCheckClicked = onTaskCheckClicked
-                )
-            }
-        }
+        // УДАЛЕНО: items(tasks.filter { it.category == "important" && !it.isCompleted })
 
         // ⭐️ Дополнительный блок: завершенные задачи
         item {
             RetroTaskCategoryCompact(
                 title = stringResource(R.string.label_completed),
-                count = tasks.count { it.isCompleted },
+                count = 0,
                 isExpanded = showCompleted,
                 onToggle = { showCompleted = !showCompleted }
             )
         }
 
-        // Отображение всех завершенных задач
-        if (showCompleted) { // 💡 ОТОБРАЖАЕМ ТОЛЬКО ЕСЛИ РАЗВЕРНУТО
-            items(tasks.filter { it.isCompleted }, key = { it.id }) { task ->
-                TaskItem(
-                    task = task.toUiModel(),
-                    onCheckClicked = onTaskCheckClicked
-                )
-            }
-        }
+        // УДАЛЕНО: items(tasks.filter { it.isCompleted })
     }
 }

@@ -40,7 +40,6 @@ class TaskCompletionRepositoryImpl @Inject constructor(
         // Конвертация Long (Entity) -> Date (Domain Model)
         return taskCompletionDao.getAllCompletions().map { entities ->
             entities.map { entity ->
-                // Используем маппер, предполагая, что он корректно создан
                 entity.toDomain()
             }
         }
@@ -56,8 +55,7 @@ class TaskCompletionRepositoryImpl @Inject constructor(
         // --- Room Transaction: обеспечивает атомарность всех обновлений ---
         db.withTransaction {
             val currentUser = userDao.getUser() ?: throw IllegalStateException("User not found")
-            val xpEarned =
-                calculateFinalXp(taskEntity, currentUser) // Расчет XP с учетом S.P.E.C.I.A.L.
+            val xpEarned = calculateFinalXp(taskEntity, currentUser)
 
             // 1. ОБНОВЛЕНИЕ USER ENTITY (XP и LEVEL UP)
             val updatedUser = processLevelUpAndXp(currentUser, xpEarned)
@@ -166,7 +164,6 @@ class TaskCompletionRepositoryImpl @Inject constructor(
         return user.copy(
             experience = newXp,
             level = newLevel
-            // Добавьте сюда логику обновления 'attributePoints', когда добавите поле
         )
     }
 }

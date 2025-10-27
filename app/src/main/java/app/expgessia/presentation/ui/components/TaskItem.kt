@@ -34,7 +34,7 @@ import app.expgessia.domain.model.TaskUiModel
 fun TaskItem(
     // 💡 ИСПОЛЬЗУЕМ НОВУЮ UI-МОДЕЛЬ
     task: TaskUiModel,
-    onCheckClicked: (Long, Boolean) -> Unit, // Передаем ID и новый статус
+    onTaskCheckClicked: (Long) -> Unit, // Передаем ID и новый статус
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -66,7 +66,7 @@ fun TaskItem(
         Row(
             modifier = Modifier
                 // 💡 ПЕРЕДАЕМ ID И НОВЫЙ СТАТУС
-                .clickable { onCheckClicked(task.id, !task.isCompleted) }
+                .clickable { onTaskCheckClicked(task.id) }
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -130,7 +130,7 @@ fun TaskItem(
             // Кнопка/Иконка статуса завершения
             IconButton(
                 // 💡 ПЕРЕДАЕМ ID И НОВЫЙ СТАТУС
-                onClick = { onCheckClicked(task.id, !task.isCompleted) },
+                onClick = { onTaskCheckClicked(task.id) },
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(
