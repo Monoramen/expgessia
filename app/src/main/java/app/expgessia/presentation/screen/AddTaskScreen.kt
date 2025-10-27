@@ -81,7 +81,7 @@ fun AddTaskScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add New Task") },
+                title = { Text(stringResource(R.string.label_add_new_task)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClicked) {
                         // Используем иконку "назад" или "закрыть"
@@ -132,14 +132,14 @@ fun AddTaskScreen(
                         .menuAnchor(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(stringResource(R.string.label_characeristics), style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.label_characeristic), style = MaterialTheme.typography.labelLarge)
                     Spacer(modifier = Modifier.width(8.dp))
 
                     selectedCharacteristic?.let { characteristic ->
                         // ✅ ИСПОЛЬЗУЕМ ПЕРЕИСПОЛЬЗУЕМЫЙ КОМПОНЕНТ
                         CharacteristicBadge(
                             iconName = characteristic.iconResName, // <--- Сюда нужно вставить новый компонент
-                            name = characteristic.name,
+                            name = stringResource(characteristic.getLocalizedNameResId()).uppercase(),
                             modifier = Modifier.weight(1f)
                         )
                     } ?: Text(
@@ -162,7 +162,7 @@ fun AddTaskScreen(
                             text = {
                                 CharacteristicBadge(
                                     iconName = characteristic.iconResName,
-                                    name = characteristic.name
+                                    name = stringResource(characteristic.getLocalizedNameResId()).uppercase(),
                                 )
                             },
                             onClick = {
@@ -218,7 +218,7 @@ fun AddTaskScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(repeatMode.name, style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(repeatMode.stringResId).uppercase(), style = MaterialTheme.typography.labelLarge)
                     }
 
                     Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null)
@@ -230,7 +230,7 @@ fun AddTaskScreen(
                 ) {
                     RepeatMode.entries.forEach { mode ->
                         DropdownMenuItem(
-                            text = { Text(mode.name) },
+                            text = { Text(stringResource(mode.stringResId).uppercase()) },
                             onClick = {
                                 repeatMode = mode
                                 repeatExpanded = false

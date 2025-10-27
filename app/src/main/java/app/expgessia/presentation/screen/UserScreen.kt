@@ -1,5 +1,6 @@
 package app.expgessia.presentation.screen
 
+import android.content.res.Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,8 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import app.expgessia.R
 import app.expgessia.domain.model.TaskUiModel
 import app.expgessia.presentation.viewmodel.UserViewModel
 import app.expgessia.ui.components.RetroTaskCategoryCompact
@@ -150,7 +153,7 @@ fun UserScreen(
         // Today
         item {
             RetroTaskCategoryCompact(
-                title = "Today",
+                title = stringResource(R.string.label_today),
                 count = tasks.count { it.category == "today" && !it.isCompleted },
                 isExpanded = showToday,
                 onToggle = { showToday = !showToday }
@@ -171,7 +174,7 @@ fun UserScreen(
 // Tomorrow
         item {
             RetroTaskCategoryCompact(
-                title = "Tomorrow",
+                title = stringResource(R.string.label_tomorrow),
                 count = tasks.count { it.category == "tomorrow" && !it.isCompleted },
                 isExpanded = showTomorrow,
                 onToggle = { showTomorrow = !showTomorrow }
@@ -192,7 +195,7 @@ fun UserScreen(
 // Important
         item {
             RetroTaskCategoryCompact(
-                title = "Important",
+                title = stringResource(R.string.label_important),
                 count = tasks.count { it.category == "important" && !it.isCompleted },
                 isExpanded = showImportant,
                 onToggle = { showImportant = !showImportant }
@@ -213,10 +216,10 @@ fun UserScreen(
         // ⭐️ Дополнительный блок: завершенные задачи
         item {
             RetroTaskCategoryCompact(
-                title = "Completed",
+                title = stringResource(R.string.label_completed),
                 count = tasks.count { it.isCompleted },
-                isExpanded = showCompleted, // 💡 ИСПОЛЬЗУЕМ НОВОЕ СОСТОЯНИЕ
-                onToggle = { showCompleted = !showCompleted } // 💡 ПЕРЕКЛЮЧАЕМ НОВОЕ СОСТОЯНИЕ
+                isExpanded = showCompleted,
+                onToggle = { showCompleted = !showCompleted }
             )
         }
 

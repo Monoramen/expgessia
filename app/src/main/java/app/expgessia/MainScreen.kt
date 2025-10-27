@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import app.expgessia.presentation.screen.AddTaskScreen
@@ -74,7 +75,7 @@ fun MainScreen(
 
                 "stats" -> {
                     SimpleBackAppBar(
-                        title = "STATISTICS",
+                        title = stringResource(R.string.nav_stats).uppercase(),
                         onBackClicked = {
                             currentRoute = "hero"
                         }
@@ -83,7 +84,7 @@ fun MainScreen(
 
                 "calendar" -> {
                     SimpleBackAppBar(
-                        title = "CALENDAR",
+                        title = stringResource(R.string.nav_calendar).uppercase(),
                         onBackClicked = {
                             currentRoute = "hero"
                         }
@@ -117,15 +118,11 @@ fun MainScreen(
                         )
 
                         Tab.CHARACTERISTICS -> CharacteristicScreen()
-                        Tab.SKILLS -> SkillScreen()
                     }
                 }
 
-                "tasks" -> TaskRoute( // 🟢 ИСПОЛЬЗУЕМ TaskRoute
-                    // TaskRoute сам получает ViewModel и данные из БД.
-                    // Передаем только лямбду для навигации.
+                "tasks" -> TaskRoute(
                     onAddTaskClicked = { showAddTask = true }
-                    // onTaskCheckChanged больше не нужен, он внутри TaskRoute/ViewModel
                 )
 
                 "calendar" -> CalendarScreen()

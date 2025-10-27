@@ -3,13 +3,9 @@ package app.expgessia.data.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
-import app.expgessia.data.converter.DateConverter
-import java.util.Date
 
 
 @Entity(tableName = "users")
-@TypeConverters(DateConverter::class)
 data class UserEntity(
 
     @PrimaryKey val id: Int = 1,
@@ -25,7 +21,7 @@ data class UserEntity(
     val agility: Int,
     val luck: Int,
     @ColumnInfo(name = "last_login")
-    val lastLogin: Date?, // Последний вход
+    val lastLogin: Long?,
     @ColumnInfo(name = "photo_uri")
-        val photoUri: String? = null // Добавим поле для фото
+    val photoUri: String? = null, // Добавим поле для фото
 )

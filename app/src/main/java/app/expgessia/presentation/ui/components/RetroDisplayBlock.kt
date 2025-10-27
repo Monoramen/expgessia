@@ -28,7 +28,7 @@ val InnerBezelColor = Color(0xFF242424)
 
 // Фон дисплея - глубокий черный
 val DisplayBackgroundColor = Color(0xFF101010)
-private val CornerRadius = 8.dp
+ val CornerRadius = 8.dp
 val ContentPaddingHorizontal = 4.dp
 val ContentPaddingTextVertical = 2.dp
 private val BoltEdgePadding = 5.dp // Отступ болтов от края рамки
@@ -55,7 +55,7 @@ fun RetroFrame(
                 // 1. Внешний корпус (Metal Frame)
                 .clip(RoundedCornerShape(CornerRadius))
                 .background(FrameMetalColor)
-                .border(2.dp, FrameHighlight, RoundedCornerShape(CornerRadius))
+
                 .padding(12.dp)
         ) {
             // 2. Внутренняя рамка

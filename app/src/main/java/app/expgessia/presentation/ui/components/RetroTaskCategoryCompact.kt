@@ -20,10 +20,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.expgessia.R
+
 /**
  * Компактный компонент категории задач в ретро-стиле.
  * Выступает в качестве интерактивного заголовка, который можно развернуть/свернуть.
@@ -35,7 +35,7 @@ import app.expgessia.R
  * @param modifier Модификатор для применения к контейнеру.
  */
 
-private val CornerRadius = 8.dp
+
 private val BoltEdgePadding = 6.dp // Отступ болтов от края рамки
 
 @Composable
@@ -44,7 +44,7 @@ fun RetroTaskCategoryCompact(
     count: Int,
     isExpanded: Boolean,
     onToggle: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // Используем стили из RetroTitle.kt
     val compactTextSize = 18.sp

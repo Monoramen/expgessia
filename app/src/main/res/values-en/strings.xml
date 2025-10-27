@@ -9,6 +9,7 @@
 
     <!-- Новые строки для нижней навигации -->
     <string name="nav_hero">Hero</string>
+    <string name="nav_characteristics">Characteristics</string>
     <string name="nav_tasks">Tasks</string>
     <string name="nav_calendar">Calendar</string>
     <string name="nav_stats">Stats</string>
@@ -23,12 +24,38 @@
     <string name="stat_agility">Agility</string>
     <string name="stat_luck">Luck</string>
 
+    <string name="stat_strength_desc">Care of body and will. Walking, cleaning, sports.</string>
+    <string name="stat_perception_desc">Awareness and observation. Meditation, attention to detail.</string>
+    <string name="stat_endurance_desc">Energy and resilience. Sleep, breaks, routine.</string>
+    <string name="stat_charisma_desc">Connection with people. Conversation, compliments, smile.</string>
+    <string name="stat_intelligence_desc">Curiosity and thinking. Reading, questioning, learning.</string>
+    <string name="stat_agility_desc">Flexibility and adaptability. New routes, changes.</string>
+    <string name="stat_luck_desc">Spontaneity and openness. Coincidence, game, surprise.</string>
+
+    <string name="placeholder_unknown_stat">Unknown Stat</string>
+    <string name="placeholder_unknown_desc">No description available.</string>
+
     <!-- Add new task strings -->
-    <string name="label_characeristics">Characteristics:</string>
+    <string name="label_add_new_task">Add new task</string>
+
+    <string name="label_characeristic">Characteristic:</string>
     <string name="label_title">Title</string>
     <string name="label_description">Description (Optional)</string>
     <string name="label_repeat">Repeat:</string>
     <string name="label_reward">Reward XP</string>
     <string name="button_save">Save</string>
+
+    <string name="repeat_mode_none">None</string>
+    <string name="repeat_mode_daily">Daily</string>
+    <string name="repeat_mode_weekly">Weekly</string>
+    <string name="repeat_mode_monthly">Monthly</string>
+    <string name="repeat_mode_yearly">Yearly</string>
+
+    <string name="label_today">Today </string>
+    <string name="label_tomorrow">Tomorrow </string>
+    <string name="label_important">Important </string>
+    <string name="label_completed">Completed </string>
+
+
 
 </resources>

@@ -1,6 +1,7 @@
 package app.expgessia.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,11 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -43,22 +45,11 @@ import app.expgessia.domain.model.User
 import app.expgessia.presentation.ui.theme.DigitMediumStyle
 
 
-// ⭐️ ЦВЕТА для характеристик
-private val ColorSTR = Color(0xFFE57373) // Красный (Сила)
-private val ColorPER = Color(0xFF81C784) // Светло-зеленый (Восприятие)
-private val ColorEND = Color(0xFF64B5F6) // Голубой (Выносливость)
-private val ColorCHA = Color(0xFFFFB74D) // Оранжевый (Харизма)
-private val ColorINT = Color(0xFFBA68C8) // Фиолетовый (Интеллект)
-private val ColorAGI = Color(0xFFFF8A65) // Персиковый (Ловкость)
-private val ColorLCK = Color(0xFFFFF176) // Желтый (Удача)
-// private val ColorWhite = Color(0xFFFFFFFF) // Не используется после замены
-
-
 @Composable
 fun UserCard(
     user: User?,
     onNameEdit: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var isEditingName by remember { mutableStateOf(false) }
     var editedName by remember { mutableStateOf("") }
@@ -83,8 +74,13 @@ fun UserCard(
 
             // ⭐️ БЛОК 1: ИМЯ
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(CornerRadius))
+                    .background(FrameMetalColor)
+                    .border(2.dp, FrameHighlight, RoundedCornerShape(CornerRadius))
+                    .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
             ) {
                 // Имя
                 if (isEditingName) {
@@ -122,7 +118,7 @@ fun UserCard(
                         Text(
                             text = user.name.uppercase(),
                             style = MaterialTheme.typography.titleLarge,
-                            color = onCardColor,
+                            color = Color(0xFFACA452),
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -250,7 +246,7 @@ private fun StatItem(labelResId: Int, value: Int) {
 @Composable
 private fun CharacteristicsGrid(user: User) {
     // Внутренний отступ, чтобы текст не сливался с рамкой
-    val innerPadding = 6.dp
+    val innerPadding = 16.dp
 
     // ⭐️ Родительская Row для горизонтального размещения колонок
     Row(
@@ -263,7 +259,9 @@ private fun CharacteristicsGrid(user: User) {
     ) {
         // 1. КОЛОНКА 1 (4 стата)
         Column(
-            modifier = Modifier.weight(1f).padding(end = 8.dp) // Занимает половину ширины
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 16.dp) // Занимает половину ширины
         ) {
             // ✅ Используем strings
             StatItem(R.string.stat_strength, user.strength)
@@ -282,7 +280,9 @@ private fun CharacteristicsGrid(user: User) {
 
         // 2. КОЛОНКА 2 (3 стата)
         Column(
-            modifier = Modifier.weight(1f).padding(start = 8.dp) // Отступ от разделителя
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 16.dp) // Отступ от разделителя
         ) {
             // ✅ Используем новые ID строк
             StatItem(R.string.stat_intelligence, user.intelligence)

@@ -8,8 +8,9 @@
     <string name="text_money">Монеты: %d</string>
 
     <!-- Новые строки для нижней навигации -->
-    <string name="nav_hero">Герой</string>
-    <string name="nav_tasks">Задания</string>
+    <string name="nav_hero">Персонаж</string>
+    <string name="nav_characteristics">Характеристики</string>
+    <string name="nav_tasks">Задачи</string>
     <string name="nav_calendar">Календарь</string>
     <string name="nav_stats">Статистика</string>
 
@@ -23,12 +24,42 @@
     <string name="stat_agility">Ловкость</string>
     <string name="stat_luck">Удача</string>
 
+    <string name="stat_strength_desc">Забота о теле и воле. Прогулка, уборка, спорт.</string>
+    <string name="stat_perception_desc">Осознанность и наблюдение. Медитация, внимание к деталям.</string>
+    <string name="stat_endurance_desc">Энергия и устойчивость. Сон, паузы, режим.</string>
+    <string name="stat_charisma_desc">Связь с людьми. Разговор, комплимент, улыбка.</string>
+    <string name="stat_intelligence_desc">Любопытство и мышление. Чтение, вопросы, обучение.</string>
+    <string name="stat_agility_desc">Гибкость и адаптивность. Новые маршруты, перемены.</string>
+    <string name="stat_luck_desc">Спонтанность и открытость. Случай, игра, сюрприз.</string>
+
+    <string name="placeholder_unknown_stat">Неизвестная характеристика</string>
+    <string name="placeholder_unknown_desc">Описание отсутствует.</string>
+
+
+
+
     <!-- Add new task strings -->
-    <string name="label_characeristics">Характеристики:</string>
+    <string name="label_add_new_task">Создать задачу</string>
+
+    <string name="label_characeristic">Характеристика:</string>
     <string name="label_title">Заголовок</string>
     <string name="label_description">Описание (Опционально)</string>
     <string name="label_repeat">Повторить:</string>
     <string name="label_reward">Награда XP</string>
     <string name="button_save">Сохранить</string>
+
+
+    <string name="repeat_mode_none">Не повторять</string>
+    <string name="repeat_mode_daily">Ежедневно</string>
+    <string name="repeat_mode_weekly">Еженедельно</string>
+    <string name="repeat_mode_monthly">Ежемесячно</string>
+    <string name="repeat_mode_yearly">Ежегодно</string>
+
+    <string name="label_today">Сегодня </string>
+    <string name="label_tomorrow">Завтра </string>
+    <string name="label_important">Важное </string>
+    <string name="label_completed">Завершены </string>
+
+
 
 </resources>

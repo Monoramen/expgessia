@@ -14,9 +14,11 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.expgessia.R
 import app.expgessia.presentation.ui.theme.FalloutFontFamily
 
 
@@ -32,9 +34,7 @@ fun TopAppHeroTabs(
             selectedTabIndex = when (currentTab) {
                 Tab.HERO -> 0
                 Tab.CHARACTERISTICS -> 1
-                Tab.SKILLS -> 2
             },
-            // Фон табов: темный (secondaryContainer) для контраста
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
             indicator = { tabPositions ->
@@ -53,12 +53,11 @@ fun TopAppHeroTabs(
                 modifier = Modifier.height(36.dp),
                 text = {
                     Text(
-                        "HERO",
+                        stringResource(R.string.nav_hero).uppercase(),
                         fontSize = 18.sp,
-                        // Используем цвет текста из TabRow, который установлен как onSurface (неоновый зеленый)
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        fontFamily = FalloutFontFamily // ⭐️ Применяем шрифт
+                        fontFamily = FalloutFontFamily
                     )
                 }
             )
@@ -66,47 +65,31 @@ fun TopAppHeroTabs(
             Tab(
                 selected = currentTab == Tab.CHARACTERISTICS,
                 onClick = { onTabChange(Tab.CHARACTERISTICS) },
-                // ⭐️ Уменьшаем внутренний padding (если нужно сжать вкладки)
                 modifier = Modifier.height(36.dp),
                 text = {
                     Text(
-                        "CHARACTERISTICS",
+                        stringResource(R.string.nav_characteristics).uppercase(),
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
-                        fontFamily = FalloutFontFamily // ⭐️ Применяем шрифт
+                        fontFamily = FalloutFontFamily
                     )
                 }
             )
 
-            /* Tab(
-                            selected = currentTab == Tab.SKILLS,
-                            onClick = { onTabChange(Tab.SKILLS) },
-                            text = {
-                                Text(
-                                    "SKILLS",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    maxLines = 1,
-                                    fontFamily = FalloutFontFamily // ⭐️ Применяем шрифт
-                                )
-                            }
-                        )*/
+
         }
 
-        // ⭐️ ДОБАВЛЕНИЕ НИЖНЕЙ ЛИНИИ ПОД ВСЕЙ TabRow
-        // Это гарантирует, что разделитель будет виден, даже если TabRow сильно сжат.
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                // Используем темный цвет поверхности, чтобы он был едва заметен
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         )
     }
 }
 
-
 enum class Tab {
-    HERO, CHARACTERISTICS, SKILLS
+    HERO, CHARACTERISTICS
 }

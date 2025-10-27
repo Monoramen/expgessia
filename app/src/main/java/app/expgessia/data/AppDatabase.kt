@@ -9,16 +9,20 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.expgessia.data.converter.DateConverter
 import app.expgessia.data.dao.CharacteristicDao
+import app.expgessia.data.dao.DailyStatsDao
+import app.expgessia.data.dao.TaskCompletionDao
 import app.expgessia.data.dao.TaskDao
 import app.expgessia.data.dao.UserDao
 import app.expgessia.data.entity.CharacteristicEntity
+import app.expgessia.data.entity.DailyStatsEntity
+import app.expgessia.data.entity.TaskCompletionEntity
 import app.expgessia.data.entity.TaskEntity
 import app.expgessia.data.entity.UserEntity
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 @Database(
-    entities = [UserEntity::class, CharacteristicEntity::class, TaskEntity::class],
+    entities = [UserEntity::class, CharacteristicEntity::class, TaskEntity::class, DailyStatsEntity::class, TaskCompletionEntity::class],
     version = 1,
     exportSchema = false
 )
@@ -30,6 +34,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun characteristicDao(): CharacteristicDao
 
     abstract fun taskDao(): TaskDao
+
+
+    abstract fun taskCompletionDao(): TaskCompletionDao // <--- ДОБАВИТЬ
+
+    abstract fun dailyStatsDao(): DailyStatsDao // <--- ДОБАВИТЬ
     companion object {
         private const val TAG = "AppDatabase"
 

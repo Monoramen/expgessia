@@ -1,5 +1,6 @@
 package app.expgessia.presentation.screen
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,17 +10,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,17 +26,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.expgessia.R
 import app.expgessia.domain.model.Characteristic
 import app.expgessia.presentation.ui.theme.DigitLargeStyle
-import app.expgessia.presentation.ui.theme.DigitMediumStyle
 import app.expgessia.presentation.viewmodel.CharacteristicViewModel
 import app.expgessia.ui.components.RetroFrame
 import app.expgessia.ui.components.RollerDigit
@@ -52,19 +49,43 @@ fun getDrawableResourceId(name: String): Int {
     val context = LocalContext.current
     val resourceName = name.lowercase()
 
-    // Пытаемся получить ID ресурса по имени
     val resourceId = context.resources.getIdentifier(
         resourceName, "drawable", context.packageName
     )
 
-    // Если ресурс не найден, возвращаем 0, чтобы использовать заглушку
     return resourceId
 }
 
-/**
- * Вспомогательная функция для преобразования текста в верхний регистр
- * при использовании определенных стилей.
- */
+@StringRes
+fun Characteristic.getLocalizedNameResId(): Int {
+    return when (this.name.uppercase()) {
+        "STRENGTH" -> R.string.stat_strength
+        "PERCEPTION" -> R.string.stat_perception
+        "ENDURANCE" -> R.string.stat_endurance
+        "CHARISMA" -> R.string.stat_charisma
+        "INTELLIGENCE" -> R.string.stat_intelligence
+        "AGILITY" -> R.string.stat_agility
+        "LUCK" -> R.string.stat_luck
+        else -> R.string.placeholder_unknown_stat
+    }
+}
+
+@StringRes
+fun Characteristic.getLocalizedDescriptionResId(): Int {
+    return when (this.name.uppercase()) {
+        "STRENGTH" -> R.string.stat_strength_desc
+        "PERCEPTION" -> R.string.stat_perception_desc
+        "ENDURANCE" -> R.string.stat_endurance_desc
+        "CHARISMA" -> R.string.stat_charisma_desc
+        "INTELLIGENCE" -> R.string.stat_intelligence_desc
+        "AGILITY" -> R.string.stat_agility_desc
+        "LUCK" -> R.string.stat_luck_desc
+        // Возвращаем заглушку, если характеристика не найдена
+        else -> R.string.placeholder_unknown_desc
+    }
+}
+
+
 @Composable
 private fun getProcessedText(text: String, style: TextStyle): String {
     val uppercaseStyles = listOf(
@@ -75,9 +96,6 @@ private fun getProcessedText(text: String, style: TextStyle): String {
         MaterialTheme.typography.labelMedium
     )
 
-    // Сравниваем только те свойства, которые вы задали в Typography,
-    // чтобы определить, является ли это одним из "заглавных" стилей.
-    // Примечание: Сравнение FontWeight и FontSize - это обходной путь.
     val isUppercaseStyle = uppercaseStyles.any {
         it.fontSize == style.fontSize && it.fontWeight == style.fontWeight
     }
@@ -93,7 +111,7 @@ private fun getProcessedText(text: String, style: TextStyle): String {
 @Composable
 fun CharacteristicScreen(
     // Инъекция ViewModel через Hilt
-    viewModel: CharacteristicViewModel = viewModel()
+    viewModel: CharacteristicViewModel = viewModel(),
 ) {
     // Наблюдаем за StateFlow
     val characteristics by viewModel.characteristics.collectAsState()
@@ -130,11 +148,11 @@ fun CharacteristicScreen(
 @Composable
 fun CharacteristicCard(
     characteristic: Characteristic,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
 
     val level = 5 // Заглушка уровня.
-    val levelText =  "0" + level.toString() // Преобразуем уровень в строку
+    val levelText = "0" + level.toString() // Преобразуем уровень в строку
 
     // Получаем ID ресурса динамически по имени характеристики
     val painterResourceId = getDrawableResourceId(characteristic.name)
@@ -145,7 +163,7 @@ fun CharacteristicCard(
     val iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant
 
     // Цвет иконки: FalloutOnSurface (Неоновый зеленый)
-    val iconTint = textColor
+    val iconTint = Color(0xFFFFF7F7)
 
     // Цвет фона блока уровня: FalloutPrimaryContainer (Темно-зеленый)
     val levelBoxColor = Color(0xFF60656C) // Используем как boxColor для RollerDigit
@@ -167,22 +185,22 @@ fun CharacteristicCard(
         ) {
 
 
-                if (painterResourceId != 0) {
-                    Icon(
-                        painter = painterResource(id = painterResourceId),
-                        contentDescription = characteristic.name,
-                        modifier = Modifier.size(32.dp),
-                        tint = iconTint // Цвет иконки из темы
-                    )
-                } else {
-                    // Заглушка, если ресурс не найден
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = "Placeholder",
-                        modifier = Modifier.size(32.dp),
-                        tint = iconTint // Цвет иконки из темы
-                    )
-                }
+            if (painterResourceId != 0) {
+                Icon(
+                    painter = painterResource(id = painterResourceId),
+                    contentDescription = characteristic.name,
+                    modifier = Modifier.size(32.dp),
+                    tint = iconTint // Цвет иконки из темы
+                )
+            } else {
+                // Заглушка, если ресурс не найден
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = "Placeholder",
+                    modifier = Modifier.size(32.dp),
+                    tint = iconTint // Цвет иконки из темы
+                )
+            }
 
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -192,7 +210,7 @@ fun CharacteristicCard(
                 // ЗАГОЛОВОК (UPPERCASE)
                 Text(
                     text = getProcessedText(
-                        characteristic.name,
+                        stringResource(characteristic.getLocalizedNameResId()),
                         titleStyle
                     ), // Используем вспомогательную функцию
                     style = titleStyle,
@@ -200,10 +218,8 @@ fun CharacteristicCard(
                 )
                 // ОПИСАНИЕ
                 Text(
-                    text = characteristic.description
-                        ?: "Нет описания",
+                    text = stringResource(characteristic.getLocalizedDescriptionResId()),
                     style = bodyStyle,
-                    // Используем немного приглушенный оттенок зеленого для описания
                     color = textColor.copy(alpha = 0.8f),
                     maxLines = 5,
                     overflow = TextOverflow.Ellipsis

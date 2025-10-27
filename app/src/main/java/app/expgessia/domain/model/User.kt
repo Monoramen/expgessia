@@ -1,8 +1,6 @@
 // domain/model/User.kt
 package app.expgessia.domain.model
 
-import java.util.Date
-
 data class User(
     val id: Int = 1,
     val name: String,
@@ -17,7 +15,7 @@ data class User(
     val intelligence: Int,
     val agility: Int,
     val luck: Int,
-    val lastLogin: Date?, // Последний вход
+    val lastLogin: Long?, // Последний вход
     val photoUri: String? = null // Добавим поле для фото
 ) {
     // Вычисляемые свойства для UI

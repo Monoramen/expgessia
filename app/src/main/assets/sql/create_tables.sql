@@ -36,13 +36,13 @@ CREATE TABLE IF NOT EXISTS tasks (
 );
 
 INSERT OR IGNORE INTO characteristics (name, description, icon_res_name) VALUES
-('Strength', 'Забота о теле и воле. Прогулка, уборка, спорт.', 'strength'),
-('Perception', 'Осознанность и наблюдение. Медитация, внимание к деталям.', 'perception'),
-('Endurance', 'Энергия и устойчивость. Сон, паузы, режим.', 'endurance'),
-('Charisma', 'Связь с людьми. Разговор, комплимент, улыбка.', 'charisma'),
-('Intelligence', 'Любопытство и мышление. Чтение, вопросы, обучение.', 'intelligence'),
-('Agility', 'Гибкость и адаптивность. Новые маршруты, перемены.', 'agility'),
-('Luck', 'Спонтанность и открытость. Случай, игра, сюрприз.', 'luck');
+('Strength', 'Care of body and will. Walking, cleaning, sports.', 'strength'),
+('Perception', 'Awareness and observation. Meditation, attention to detail.', 'perception'),
+('Endurance', 'Energy and resilience. Sleep, breaks, routine.', 'endurance'),
+('Charisma', 'Connection with people. Conversation, compliments, smile.', 'charisma'),
+('Intelligence', 'Curiosity and thinking. Reading, questioning, learning.', 'intelligence'),
+('Agility', 'Flexibility and adaptability. New routes, changes.', 'agility'),
+('Luck', 'Spontaneity and openness. Coincidence, game, surprise.', 'luck');
 
 
 INSERT OR IGNORE INTO users (id, name, experience, level, money, strength, perception,
