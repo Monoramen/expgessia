@@ -1,4 +1,3 @@
-// di/RepositoryModule.kt
 package app.expgessia.di
 
 import app.expgessia.data.repository.CharacteristicRepositoryImpl
@@ -24,31 +23,31 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUserRepository(
-        userRepositoryImpl: UserRepositoryImpl
+        userRepositoryImpl: UserRepositoryImpl,
     ): UserRepository
 
     @Singleton
     @Binds
     abstract fun bindCharacteristicRepository(
-        characteristicRepositoryImpl: CharacteristicRepositoryImpl
+        characteristicRepositoryImpl: CharacteristicRepositoryImpl,
     ): CharacteristicRepository
 
     @Singleton
     @Binds
     abstract fun bindTaskRepository(
-        taskRepositoryImpl: TaskRepositoryImpl
+        taskRepositoryImpl: TaskRepositoryImpl,
     ): TaskRepository
 
 
     @Singleton
     @Binds
     abstract fun bindTaskCompletionRepository(
-        taskCompletionRepositoryImpl: TaskCompletionRepositoryImpl
+        taskCompletionRepositoryImpl: TaskCompletionRepositoryImpl,
     ): TaskCompletionRepository
 
     @Singleton
     @Binds
     abstract fun bindDailyStatsRepository(
-        dailyStatsRepositoryImpl: DailyStatsRepositoryImpl
+        dailyStatsRepositoryImpl: DailyStatsRepositoryImpl,
     ): DailyStatsRepository
 }

@@ -1,4 +1,3 @@
-// di/DatabaseModule.kt
 package app.expgessia.di
 
 import android.content.Context
@@ -31,7 +30,6 @@ object DatabaseModule {
     fun provideCharacteristicDao(appDatabase: AppDatabase): CharacteristicDao {
         return appDatabase.characteristicDao()
     }
-
 
     @Provides
     fun provideTaskDao(appDatabase: AppDatabase): TaskDao {

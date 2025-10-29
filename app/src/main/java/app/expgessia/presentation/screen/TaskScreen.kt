@@ -9,24 +9,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.expgessia.domain.model.TaskUiModel
 import app.expgessia.presentation.viewmodel.TaskViewModel
-import app.expgessia.ui.components.AddTaskButton
 import app.expgessia.ui.components.TaskItem
 
 @Composable
 fun TaskRoute(
     onAddTaskClicked: () -> Unit,
-    viewModel: TaskViewModel = viewModel()
+    onEditTaskClicked: (Long) -> Unit,
+    viewModel: TaskViewModel = hiltViewModel(),
 ) {
+
     // 💡 Используем tasksUiState, который содержит List<TaskUiModel>
     val tasks by viewModel.tasksUiState.collectAsStateWithLifecycle()
 
     TaskScreen(
         tasks = tasks,
         onTaskCheckClicked = viewModel::onTaskCheckClicked,
+        onEditTaskClicked = onEditTaskClicked,
         onAddTaskClicked = onAddTaskClicked
     )
 }
@@ -37,20 +40,22 @@ fun TaskScreen(
     tasks: List<TaskUiModel>,
     onAddTaskClicked: () -> Unit,
     onTaskCheckClicked: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    onEditTaskClicked: (Long) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
 
-    ) { paddingValues ->
+        ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(2.dp),
+
             contentPadding = PaddingValues(
-                start = 10.dp,
-                end = 16.dp,
-                top = paddingValues.calculateTopPadding(), // Берем отступ от TopBar
+                start = 2.dp,
+                end = 2.dp,
+                top = 2.dp, // Берем отступ от TopBar
                 bottom = paddingValues.calculateBottomPadding() // Берем отступ от BottomBar
             )
         ) {
@@ -59,7 +64,8 @@ fun TaskScreen(
                 // 💡 Передаем весь объект TaskUiModel, соответствуя сигнатуре TaskItem в Canvas
                 TaskItem(
                     task = task,
-                    onTaskCheckClicked = onTaskCheckClicked
+                    onTaskCheckClicked = onTaskCheckClicked,
+                    onTaskEditClicked = onEditTaskClicked,
                 )
             }
         }

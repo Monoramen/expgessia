@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.expgessia.R
 import app.expgessia.domain.model.Characteristic
@@ -111,7 +112,7 @@ private fun getProcessedText(text: String, style: TextStyle): String {
 @Composable
 fun CharacteristicScreen(
     // Инъекция ViewModel через Hilt
-    viewModel: CharacteristicViewModel = viewModel(),
+    viewModel: CharacteristicViewModel = hiltViewModel(),
 ) {
     // Наблюдаем за StateFlow
     val characteristics by viewModel.characteristics.collectAsState()

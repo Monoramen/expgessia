@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
-    private val userDao: UserDao
+    private val userDao: UserDao,
 ) : UserRepository {
 
     override fun getCurrentUser(): Flow<User?> {
@@ -27,7 +27,6 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun updateUser(user: User) {
         userDao.updateUser(user.toEntity())
-        // ✅ Room Flow автоматически обновится после изменения БД
     }
 
     override suspend fun deleteUser() {
@@ -41,9 +40,6 @@ class UserRepositoryImpl @Inject constructor(
         updateUser(updatedUser)
         levelUpIfPossible()
     }
-
-
-
 
     override suspend fun increaseStrength(amount: Int) {
         val currentUser = getCurrentUserOnce() ?: return
@@ -59,8 +55,6 @@ class UserRepositoryImpl @Inject constructor(
         val currentUser = getCurrentUserOnce() ?: return
         updateUser(currentUser.copy(agility = currentUser.agility + amount))
     }
-
-
 
     override suspend fun levelUpIfPossible() {
         val currentUser = getCurrentUserOnce() ?: return
@@ -82,12 +76,11 @@ class UserRepositoryImpl @Inject constructor(
             updateUser(updatedUser)
         }
     }
-// В UserRepositoryImpl.kt
 
     override suspend fun updateUserName(newName: String) {
         val currentUser = getCurrentUserOnce() ?: return
         val updatedUser = currentUser.copy(name = newName)
-        updateUser(updatedUser) // Используем уже существующий updateUser, который обновляет всю сущность
+        updateUser(updatedUser)
     }
 
 }

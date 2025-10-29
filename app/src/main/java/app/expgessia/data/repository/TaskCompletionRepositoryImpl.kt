@@ -63,13 +63,16 @@ class TaskCompletionRepositoryImpl @Inject constructor(
 
             // 2. ОБНОВЛЕНИЕ TASK ENTITY (Планирование следующей даты)
             val isRepeating = taskEntity.repeatMode.uppercase(Locale.ROOT) != "NONE"
+
+            // 💡 ИЗМЕНЕНИЕ: Для повторяющихся задач, устанавливаем isCompleted = true,
+            // а scheduledFor указывает, когда ее нужно будет сбросить на false.
             val updatedTask = if (isRepeating) {
                 taskEntity.copy(
                     scheduledFor = TimeUtils.calculateNextScheduledDate(
                         taskEntity,
                         completionTimestamp
                     ),
-                    isCompleted = false // Сброс статуса для новой итерации
+                    isCompleted = true // <-- ИЗМЕНЕНИЕ! Задача завершена до следующего scheduledFor
                 )
             } else {
                 taskEntity.copy(isCompleted = true)
@@ -149,16 +152,6 @@ class TaskCompletionRepositoryImpl @Inject constructor(
             attributePointsEarned += 1 // Начисление 1 очка S.P.E.C.I.A.L. за каждый Level Up
         }
 
-        // Необходимо, чтобы в UserEntity было поле 'attributePoints' (Int)
-        // Если это поле отсутствует, логика будет неполной.
-        // Предполагаем, что оно существует для начисления:
-        /* val currentAttributePoints = // ... получить текущие очки из UserEntity
-        return user.copy(
-            experience = newXp,
-            level = newLevel,
-            attributePoints = currentAttributePoints + attributePointsEarned // <-- Важно!
-        )
-        */
 
         // Временное решение без поля attributePoints, только XP и Level:
         return user.copy(
@@ -166,4 +159,9 @@ class TaskCompletionRepositoryImpl @Inject constructor(
             level = newLevel
         )
     }
+
+
+
+
+
 }

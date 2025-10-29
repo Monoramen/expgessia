@@ -35,10 +35,10 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun taskDao(): TaskDao
 
+    abstract fun taskCompletionDao(): TaskCompletionDao
 
-    abstract fun taskCompletionDao(): TaskCompletionDao // <--- ДОБАВИТЬ
+    abstract fun dailyStatsDao(): DailyStatsDao
 
-    abstract fun dailyStatsDao(): DailyStatsDao // <--- ДОБАВИТЬ
     companion object {
         private const val TAG = "AppDatabase"
 
@@ -52,7 +52,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app_db.db"
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(false)
                     .addCallback(DatabaseCallback(context))
                     .build()
                 INSTANCE = instance
@@ -71,15 +71,12 @@ abstract class AppDatabase : RoomDatabase() {
         private fun executeSqlFromAssets(
             db: SupportSQLiteDatabase,
             context: Context,
-            path: String
+            path: String,
         ) {
             try {
                 context.assets.open(path).use { inputStream ->
                     val reader = BufferedReader(InputStreamReader(inputStream))
                     val sql = reader.readText()
-
-                    // --- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: Разбиваем SQL-скрипт на отдельные команды ---
-                    // Разделяем скрипт по ';', удаляем пустые строки и переводы строк
                     val commands = sql.split(';')
                         .map { it.trim() }
                         .filter { it.isNotBlank() }
@@ -96,8 +93,6 @@ abstract class AppDatabase : RoomDatabase() {
                             }..."
                         )
                     }
-                    // -------------------------------------------------------------------
-
                     Log.d(TAG, "✅ УСПЕХ: Все SQL команды из $path выполнены успешно.")
                 }
             } catch (e: Exception) {

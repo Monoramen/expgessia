@@ -8,12 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
-/**
- * Реализация репозитория характеристик, отвечающая за взаимодействие с Room.
- * Использует мапперы для преобразования Entity в Domain Model.
- */
 class CharacteristicRepositoryImpl @Inject constructor(
-    private val characteristicDao: CharacteristicDao
+    private val characteristicDao: CharacteristicDao,
 ) : CharacteristicRepository {
 
     override fun getAllCharacteristics(): Flow<List<Characteristic>> {
@@ -24,7 +20,6 @@ class CharacteristicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getCharacteristicById(id: Int): Characteristic? {
-        // Получаем Entity, если она существует, и преобразуем в доменную модель.
         return characteristicDao.getCharacteristicById(id)?.toDomain()
     }
 }

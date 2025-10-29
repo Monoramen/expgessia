@@ -9,59 +9,60 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.* // ⭐️ ВАЖНО: collectAsState() должен быть здесь
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import app.expgessia.R
+import app.expgessia.domain.model.StatsUiState
+import app.expgessia.presentation.ui.components.BlinkingFooter
+import app.expgessia.presentation.ui.components.TerminalScanlines
+import app.expgessia.presentation.ui.components.formatStatValue
 import app.expgessia.presentation.ui.theme.FalloutFontFamilyDigits
 import app.expgessia.presentation.ui.theme.FalloutOutline
 import app.expgessia.presentation.ui.theme.FalloutPrimary
+import app.expgessia.presentation.viewmodel.StatsViewModel
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
+import java.text.SimpleDateFormat // ⭐️ ИМПОРТ: для форматирования даты
+import java.util.Date
+import java.util.Locale
+
+
 
 data class PlayerStat(
     val title: String,
     val value: String
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StatRow(
     stat: PlayerStat,
-    // ⭐️ ДОБАВЛЯЕМ ПАРАМЕТР ДЛЯ ШРИФТА ЦИФР
     digitsFontFamily: FontFamily
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    // ... (код анимаций и цветов остается без изменений)
     val infiniteTransition = rememberInfiniteTransition(label = "pressBlink")
     val blinkAlpha by infiniteTransition.animateFloat(
         initialValue = 0.4f,
@@ -88,19 +89,16 @@ fun StatRow(
         label = "pressBackground"
     )
 
-    // ⭐️ 1. Определяем базовый и цифровой стили
     val baseTextStyle = MaterialTheme.typography.bodyLarge.copy(
-        fontWeight = FontWeight.Normal // Используем базовый шрифт для букв
+        fontWeight = FontWeight.Normal
     )
 
     val baseSpanStyle = baseTextStyle.toSpanStyle()
 
-    // Стиль для цифр: применяем только нужный FontFamily
     val digitsSpanStyle = SpanStyle(
         fontFamily = digitsFontFamily
     )
 
-    // ⭐️ 2. Форматируем текст значения
     val formattedValue = formatStatValue(
         text = stat.value,
         baseStyle = baseSpanStyle,
@@ -115,7 +113,6 @@ fun StatRow(
             .background(backgroundColor, shape = RoundedCornerShape(2.dp))
             .combinedClickable(
                 onClick = {
-                    // короткое нажатие с "мерцанием"
                     isPressed = true
                     scope.launch {
                         repeat(3) {
@@ -126,7 +123,6 @@ fun StatRow(
                     }
                 },
                 onLongClick = {
-                    // длинное нажатие = дольше мерцание
                     isPressed = true
                     scope.launch {
                         repeat(6) {
@@ -140,22 +136,18 @@ fun StatRow(
             .padding(horizontal = 4.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Текст заголовка (без изменений)
         Text(
             text = stat.title,
             color = if (isPressed) glowColor.copy(alpha = blinkAlpha) else animatedColor,
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
         )
-        // ⭐️ Используем отформатированный AnnotatedString
         Text(
             text = formattedValue,
             color = if (isPressed) glowColor.copy(alpha = blinkAlpha) else animatedColor,
-            // Передаем базовый стиль, чтобы сохранить размер и другие параметры
             style = baseTextStyle
         )
     }
 
-    // Разделительная линия
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -165,26 +157,84 @@ fun StatRow(
 }
 
 // ---------------------------------------------------------------------
+@Composable
+fun mapStatsUiStateToPlayerStats(uiState: StatsUiState): List<PlayerStat> {
+    val context = LocalContext.current
+
+    // Вспомогательная функция для форматирования времени из миллисекунд в "Ч Ч МИН"
+    fun formatTime(ms: Long): String {
+        // Предполагая, что 0L означает "нет данных"
+        if (ms == 0L) return context.getString(R.string.placeholder_no_data)
+        val hours = TimeUnit.MILLISECONDS.toHours(ms)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(ms) % 60
+        return "$hours Ч $minutes МИН"
+    }
+
+    // ⭐️ НОВАЯ ФУНКЦИЯ: Форматирование Long timestamp в дату
+    fun formatLastVisit(timestampMs: Long): String {
+        if (timestampMs == 0L) return context.getString(R.string.placeholder_no_data)
+        // Формат даты и времени, например, "15.03.2024 14:30"
+        val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+        return formatter.format(Date(timestampMs))
+    }
+
+    // Вспомогательная функция для форматирования записи XP
+    fun formatRecordXp(xp: Int?): String {
+        return if (xp == null) "0 XP" else "$xp"
+    }
+
+    return listOf(
+        PlayerStat(
+            title = stringResource(R.string.stat_tasks_completed),
+            value = uiState.totalTasksCompleted.toString()
+        ),
+        PlayerStat(
+            title = stringResource(R.string.stat_total_xp_earned),
+            value = "${uiState.totalXpEarned}"
+        ),
+        PlayerStat(
+            title = stringResource(R.string.stat_xp_today),
+            value = "${uiState.xpToday}"
+        ),
+        PlayerStat(
+            title = stringResource(R.string.stat_last_visit),
+            // ⭐️ ИСПРАВЛЕНО: Форматируем Long (timestamp) в читаемую дату
+            value = formatLastVisit(uiState.lastVisit)
+        ),
+        PlayerStat(
+            title = stringResource(R.string.stat_time_in_game),
+            value = formatTime(uiState.timeInGameMs)
+        ),
+        PlayerStat(
+            title = stringResource(R.string.stat_login_streak),
+            value = "${uiState.currentStreak}"
+        ),
+        PlayerStat(
+            title = stringResource(R.string.stat_record_day),
+            value = formatRecordXp(uiState.recordXpDay)
+        ),
+        PlayerStat(
+            title = stringResource(R.string.stat_status),
+            value = uiState.status
+        )
+    )
+}
 
 @Composable
-fun StatsScreen(modifier: Modifier = Modifier) {
-    val stats = listOf(
-        PlayerStat("ВЫПОЛНЕНО ЗАДАЧ", "42"),
-        PlayerStat("ПОЛУЧЕНО ОПЫТА (ВСЕГО)", "1280 XP"),
-        PlayerStat("ОПЫТ ЗА СЕГОДНЯ", "150 XP"),
-        PlayerStat("ПОСЛЕДНИЙ ВИЗИТ", "19 ОКТ 2025"),
-        PlayerStat("ВРЕМЯ В ИГРЕ", "3 Ч 24 МИН"),
-        PlayerStat("СЕРИЯ ВХОДОВ", "5 ДНЕЙ"),
-        PlayerStat("РЕКОРДНЫЙ ДЕНЬ", "560 XP"),
-        PlayerStat("СТАТУС", "АКТИВЕН")
-    )
+fun StatsScreen(
+    modifier: Modifier = Modifier,
+    viewModel: StatsViewModel = hiltViewModel()
+) {
+    // ⭐️ ИСПРАВЛЕНО: Теперь collectAsState() работает корректно
+    val uiState by viewModel.uiState.collectAsState()
+
+    val stats = mapStatsUiStateToPlayerStats(uiState)
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // ⛓ Фоновые эффекты CRT
         TerminalScanlines()
 
         Column(
@@ -193,7 +243,6 @@ fun StatsScreen(modifier: Modifier = Modifier) {
                 .padding(horizontal = 16.dp, vertical = 24.dp)
         ) {
             stats.forEach { stat ->
-                // ⭐️ ПЕРЕДАЕМ ШРИФТ ДЛЯ ЦИФР
                 StatRow(stat = stat, digitsFontFamily = FalloutFontFamilyDigits)
             }
 
@@ -203,83 +252,3 @@ fun StatsScreen(modifier: Modifier = Modifier) {
         }
     }
 }
-
-@Composable
-fun TerminalScanlines() {
-    Canvas(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        val lineHeight = 4.dp.toPx()
-        var y = 0f
-        while (y < size.height) {
-            drawLine(
-                color = Color(0xFF00FF00).copy(alpha = 0.06f),
-                start = Offset(0f, y),
-                end = Offset(size.width, y),
-                strokeWidth = 1f
-            )
-            y += lineHeight
-        }
-    }
-}
-
-
-// ⭐️ ФУНКЦИЯ-ПОМОЩНИК ДЛЯ ФОРМАТИРОВАНИЯ
-fun formatStatValue(
-    text: String,
-    baseStyle: SpanStyle,
-    digitStyle: SpanStyle
-) = buildAnnotatedString {
-    text.forEach { char ->
-        // Проверяем, является ли символ цифрой
-        if (char.isDigit()) {
-            // Если цифра, применяем стиль цифр
-            withStyle(digitStyle) {
-                append(char)
-            }
-        } else {
-            // Если буква или другой символ (пробел, XP, Ч, МИН),
-            // применяем базовый стиль
-            withStyle(baseStyle) {
-                append(char)
-            }
-        }
-    }
-}
-
-// ---------------------------------------------------------------------
-@Composable
-fun BlinkingFooter() {
-    // 🔸 Мигание курсора
-    val infiniteTransition = rememberInfiniteTransition(label = "cursorBlink")
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(700, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "cursorAlpha"
-    )
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "== END OF FILE ==",
-            color = FalloutOutline,
-            fontSize = 12.sp,
-            style = MaterialTheme.typography.bodySmall
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Box(
-            modifier = Modifier
-                .size(10.dp, 14.dp)
-                .alpha(alpha)
-                .background(FalloutPrimary)
-        )
-    }
-}
-
-

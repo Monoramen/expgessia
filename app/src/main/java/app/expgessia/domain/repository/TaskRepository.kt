@@ -1,6 +1,6 @@
 package app.expgessia.domain.repository
 
-import app.expgessia.domain.model.Characteristic
+import app.expgessia.data.entity.TaskEntity
 import app.expgessia.domain.model.Task
 import kotlinx.coroutines.flow.Flow
 
@@ -12,5 +12,11 @@ interface TaskRepository {
     suspend fun deleteTask(task: Task)
 
     suspend fun getIconResNameByCharacteristicId(id: Int): String?
+
+     fun getTodayActiveTasks(): Flow<List<Task>>
+     fun getCompletedTasksStream(): Flow<List<Task>>
+     fun getTomorrowScheduledTasks(): Flow<List<Task>>
+
+    suspend fun resetOverdueRepeatingTasks()
 
 }

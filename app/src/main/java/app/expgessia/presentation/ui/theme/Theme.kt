@@ -89,11 +89,9 @@ fun expgessiaTheme(
         SideEffect {
             val window = (view.context as Activity).window
             // Устанавливаем статус-бар и навигационную панель в цвет фона терминала
-            window.statusBarColor = colorScheme.background.toArgb()
-            window.navigationBarColor = colorScheme.background.toArgb()
+            window.setStatusBarColor(colorScheme.background.toArgb())
+            window.setNavigationBarColor(colorScheme.background.toArgb())
 
-            // Настраиваем, чтобы иконки системных панелей были светлыми (так как фон темный)
-            // false означает, что иконки будут светлыми (для темной темы)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = false
         }

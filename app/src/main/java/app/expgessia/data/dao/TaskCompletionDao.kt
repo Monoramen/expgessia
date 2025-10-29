@@ -18,6 +18,9 @@ interface TaskCompletionDao {
     @Query("SELECT COUNT(id) FROM task_completions")
     fun getTotalCompletedTasksCount(): Flow<Int>
 
+    //Получить общее количество задач
+
+
     // Получить общее количество опыта, заработанного для конкретной характеристики
     // Использовать SUM(xp_earned) для статистики по S.P.E.C.I.A.L.
     @Query("SELECT SUM(xp_earned) FROM task_completions WHERE characteristic_id = :characteristicId")
@@ -26,4 +29,6 @@ interface TaskCompletionDao {
     // Получить все записи выполнения (для истории/детального просмотра)
     @Query("SELECT * FROM task_completions ORDER BY completion_date DESC")
     fun getAllCompletions(): Flow<List<TaskCompletionEntity>>
+
+
 }

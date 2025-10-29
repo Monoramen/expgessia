@@ -1,4 +1,3 @@
-// domain/repository/DailyStatsRepository.kt
 package app.expgessia.domain.repository
 
 import app.expgessia.domain.model.DailyStats
@@ -20,4 +19,11 @@ interface DailyStatsRepository {
     suspend fun recordUserLogin(currentTimestamp: Long, timeInAppMs: Long)
 
     fun getCurrentStreak(): Flow<Int>
+
+
+    fun getTotalXpEarned(): Flow<Int>
+
+    fun getTotalTasksCompleted(): Flow<Int>
+
+    fun getTodayXp(): Flow<Int>
 }

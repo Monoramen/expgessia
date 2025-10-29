@@ -3,6 +3,7 @@ package app.expgessia.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.expgessia.data.entity.TaskEntity
 import app.expgessia.domain.model.Characteristic
 import app.expgessia.domain.model.Task
 import app.expgessia.domain.model.TaskUiModel
@@ -32,6 +33,11 @@ class TaskViewModel @Inject constructor(
     private val completeTaskUseCase: CompleteTaskUseCase
 ) : ViewModel() {
 
+    init {
+        // Вызываем логику сброса задач сразу при создании ViewModel
+        resetTasksIfOverdue()
+    }
+
     // 1. Приватный поток, который собирает сырые данные из базы
     private val rawTasksFlow: Flow<List<Task>> = taskRepository.getAllTasks()
 
@@ -55,6 +61,41 @@ class TaskViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    val todayTasks: StateFlow<List<TaskUiModel>> =
+        taskRepository.getTodayActiveTasks()
+            .map { tasks -> mapToUiModel(tasks) } // ✅ Используем ваш маппер
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
+
+    /**
+     * Поток завершенных (но еще не сброшенных) задач.
+     */
+    val completedTasks: StateFlow<List<TaskUiModel>> =
+        taskRepository.getCompletedTasksStream()
+            .map { tasks -> mapToUiModel(tasks) } // ✅ Используем ваш маппер
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
+
+    /**
+     * Поток задач, запланированных на завтра.
+     */
+    val tomorrowTasks: StateFlow<List<TaskUiModel>> =
+        taskRepository.getTomorrowScheduledTasks()
+            .map { tasks -> mapToUiModel(tasks) } // ✅ Используем ваш маппер
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
+
+
 
     /**
      * Преобразует список Task в список TaskUiModel, асинхронно загружая iconResName для каждой задачи.
@@ -81,12 +122,11 @@ class TaskViewModel @Inject constructor(
                     )
                 }
             }
-            // Ждем завершения всех асинхронных запросов и возвращаем результат
             mappedTasks.awaitAll()
         }
     }
 
-    fun onAddTask(task: Task) { // 💡 Принимаем готовую Task, созданную на UI
+    fun onAddTask(task: Task) {
         viewModelScope.launch {
             try {
                 taskRepository.addTask(task) // ✅ ПРЯМОЙ ВЫЗОВ РЕПОЗИТОРИЯ
@@ -101,17 +141,47 @@ class TaskViewModel @Inject constructor(
     fun onTaskCheckClicked(taskId: Long) {
         viewModelScope.launch {
             try {
-                // Вызываем Use Case для выполнения задачи, начисления XP и прокачки персонажа
-                // (Игнорируем isCompleted из UI, поскольку логика Use Case сама установит
-                // флаг завершения и обновит базу, что вызовет обновление UI)
                 completeTaskUseCase(taskId, System.currentTimeMillis())
                 Log.d("TaskViewModel", "Task with ID $taskId completed via Use Case.")
-
             } catch (e: Exception) {
-                // Обработка ошибок (например, логирование)
-                Log.println(Log.ERROR, "TasksViewModel", "Failed to complete task $taskId: ${e.stackTraceToString()}")
+                Log.d( "TasksViewModel", "Failed to complete task $taskId: ${e.stackTraceToString()}")
                 // В реальном приложении здесь можно было бы показать Toast/Snackbar
             }
         }
     }
+
+
+
+
+    fun onUpdateTask(task: Task) {
+        viewModelScope.launch {
+            try {
+                taskRepository.updateTask(task)
+                Log.d("TaskViewModel", "Task updated: ${task.title}")
+            } catch (e: Exception) {
+                Log.e("TaskViewModel", "Failed to update task", e)
+            }
+        }
+    }
+
+    suspend fun getTaskById(taskId: Long): Task? {
+        return withContext(Dispatchers.IO) {
+            taskRepository.getTaskById(taskId)
+        }
+    }
+
+
+    private fun resetTasksIfOverdue() {
+        viewModelScope.launch {
+            try {
+                // Вызываем новую suspend-функцию репозитория
+                taskRepository.resetOverdueRepeatingTasks()
+                Log.d("TaskViewModel", "Overdue repeating tasks have been reset.")
+            } catch (e: Exception) {
+                Log.e("TaskViewModel", "Failed to reset overdue tasks", e)
+            }
+        }
+    }
+
+
 }

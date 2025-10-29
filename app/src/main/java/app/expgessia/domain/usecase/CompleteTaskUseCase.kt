@@ -13,19 +13,13 @@ class CompleteTaskUseCase  @Inject constructor(
     suspend operator fun invoke(taskId: Long, completionTimestamp: Long) {
         val task = taskRepository.getTaskById(taskId) ?: throw IllegalArgumentException("Task not found with ID: $taskId")
 
-        // Дополнительная проверка, чтобы избежать двойного завершения (если это не повторяющаяся задача)
-        if (task.isCompleted && !task.repeatMode.equals("NONE")) {
-            throw IllegalStateException("Task with ID $taskId is already completed and not repeating.")
+
+        if (task.isCompleted) {
+            throw IllegalStateException("Task with ID $taskId is already completed.")
         }
 
-        // 2. Регистрируем завершение (это обновит XP, уровень и т.д.)
-        // Мы предполагаем, что task.toEntity() внутри taskCompletionRepository.completeTask()
-        // создает TaskCompletionEntity с необходимой логикой XP.
+        // 1. Регистрируем завершение. ЭТОТ ВЫЗОВ УЖЕ ОБНОВЛЯЕТ TaskEntity (scheduledFor, isCompleted)
         taskCompletionRepository.completeTask(task.toEntity(), completionTimestamp)
 
-        // 3. 💡 ОБНОВЛЯЕМ саму задачу в основном TaskRepository,
-        // чтобы она была помечена как завершенная, и UI обновился.
-        val updatedTask = task.copy(isCompleted = true)
-        taskRepository.updateTask(updatedTask)
     }
 }

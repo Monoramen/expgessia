@@ -14,6 +14,7 @@ data class Task(
     val isCompleted: Boolean = false,
     val scheduledFor: Long? = null,
 )
+
 enum class RepeatMode(@StringRes val stringResId: Int) {
     NONE(R.string.repeat_mode_none),
     DAILY(R.string.repeat_mode_daily),

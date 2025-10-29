@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Menu
@@ -32,9 +31,9 @@ import app.expgessia.domain.model.TaskUiModel
 // components/TaskItem.kt
 @Composable
 fun TaskItem(
-    // 💡 ИСПОЛЬЗУЕМ НОВУЮ UI-МОДЕЛЬ
     task: TaskUiModel,
-    onTaskCheckClicked: (Long) -> Unit, // Передаем ID и новый статус
+    onTaskCheckClicked: (Long) -> Unit, // Колбэк для завершения/отмены
+    onTaskEditClicked: (Long) -> Unit, // Колбэк для редактирования
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -65,8 +64,8 @@ fun TaskItem(
     ) {
         Row(
             modifier = Modifier
-                // 💡 ПЕРЕДАЕМ ID И НОВЫЙ СТАТУС
-                .clickable { onTaskCheckClicked(task.id) }
+                // 💡 ИЗМЕНЕНИЕ: Клик по элементу теперь вызывает редактирование
+                .clickable { onTaskEditClicked(task.id) }
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -112,24 +111,13 @@ fun TaskItem(
             }
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Награда XP (Badge/Chip)
-            Text(
-                // Int конвертируется в String
-                text = "+${task.xpReward} XP",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color.White,
-                modifier = Modifier
-                    .background(
-                        color = Color(0xFF4CAF50), // Насыщенный зеленый для награды
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+            // 💡 УДАЛЕНО: Блок с наградой XP (Badge/Chip)
+
+            // 💡 УДАЛЕНО: Кнопка Редактировать
 
             // Кнопка/Иконка статуса завершения
             IconButton(
-                // 💡 ПЕРЕДАЕМ ID И НОВЫЙ СТАТУС
+                // 💡 ПЕРЕДАЕМ ID для смены статуса
                 onClick = { onTaskCheckClicked(task.id) },
                 modifier = Modifier.size(40.dp)
             ) {
@@ -143,5 +131,3 @@ fun TaskItem(
         }
     }
 }
-
-

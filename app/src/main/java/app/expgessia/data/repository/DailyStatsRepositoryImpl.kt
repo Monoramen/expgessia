@@ -11,7 +11,6 @@ import app.expgessia.domain.repository.DailyStatsRepository
 import app.expgessia.utils.TimeUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.Date
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -101,5 +100,20 @@ class DailyStatsRepositoryImpl @Inject constructor(
             }
             streak
         }
+    }
+
+
+    override fun getTotalXpEarned(): Flow<Int> {
+        return dailyStatsDao.getTotalXpEarned().map { it ?: 0 }
+    }
+
+    override fun getTotalTasksCompleted(): Flow<Int> {
+        return dailyStatsDao.getTotalTasksCompleted().map { it ?: 0 }
+
+    }
+
+    override fun getTodayXp(): Flow<Int> {
+        val startOfDay = TimeUtils.calculateStartOfDay(System.currentTimeMillis())
+        return dailyStatsDao.getXpByDate(startOfDay).map { it ?: 0 }
     }
 }

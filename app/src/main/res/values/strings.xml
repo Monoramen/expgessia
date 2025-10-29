@@ -40,6 +40,7 @@
 
     <!-- Add new task strings -->
     <string name="label_add_new_task">Создать задачу</string>
+    <string name="label_edit_task">Изменить задачу</string>
 
     <string name="label_characeristic">Характеристика:</string>
     <string name="label_title">Заголовок</string>
@@ -47,6 +48,7 @@
     <string name="label_repeat">Повторить:</string>
     <string name="label_reward">Награда XP</string>
     <string name="button_save">Сохранить</string>
+    <string name="button_add_task">Добавить задачу</string>
 
 
     <string name="repeat_mode_none">Не повторять</string>
@@ -60,6 +62,31 @@
     <string name="label_important">Важное </string>
     <string name="label_completed">Завершены </string>
 
+    <string name="day_short_mon">Пн</string>
+    <string name="day_short_tue">Вт</string>
+    <string name="day_short_wed">Ср</string>
+    <string name="day_short_thu">Чт</string>
+    <string name="day_short_fri">Пт</string>
+    <string name="day_short_sat">Сб</string>
+    <string name="day_short_sun">Вс</string>
 
+    <string name="label_repeat_days">Повторять по дням:</string>
+
+    <string name="error_day_of_month_invalid">Введите число от 1 до 31</string>
+    <string name="error_invalid_day_of_month">День должен быть в диапазоне от 1 до 31.</string>
+    <string name="placeholder_day_of_month">Например, 15</string>
+    <string name="label_day_of_month">День месяца</string>
+
+
+    <string name="stat_tasks_completed">ВЫПОЛНЕНО ЗАДАЧ</string>
+    <string name="stat_total_xp_earned">ПОЛУЧЕНО ОПЫТА (ВСЕГО)</string>
+    <string name="stat_xp_today">ОПЫТ ЗА СЕГОДНЯ</string>
+    <string name="stat_last_visit">ПОСЛЕДНИЙ ВИЗИТ</string>
+    <string name="stat_time_in_game">ВРЕМЯ В ИГРЕ</string>
+    <string name="stat_login_streak">СЕРИЯ ВХОДОВ</string>
+    <string name="stat_record_day">РЕКОРДНЫЙ ДЕНЬ</string>
+    <string name="stat_status">СТАТУС</string>
+    <string name="footer_end_of_file">== КОНЕЦ ФАЙЛА ==</string>
+    <string name="placeholder_no_data">НЕТ ДАННЫХ</string>
 
 </resources>

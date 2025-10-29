@@ -20,6 +20,19 @@ interface DailyStatsDao {
     @Query("SELECT * FROM daily_stats WHERE date = :date LIMIT 1")
     suspend fun getStatsByDate(date: Long): DailyStatsEntity?
 
+    // Получить сумму всего опыта полученного игроком
+    @Query("SELECT SUM(total_xp_earned) FROM daily_stats")
+     fun getTotalXpEarned(): Flow<Int?>
+
+    //Получить опыт за сегодня
+    @Query("SELECT total_xp_earned FROM daily_stats WHERE date = :date")
+    fun getXpByDate(date: Long): Flow<Int?>
+
+    //Получить общее количество задач выполненныйх пользователем
+    @Query("SELECT SUM(tasks_completed_count) FROM daily_stats")
+     fun getTotalTasksCompleted(): Flow<Int?>
+
+
     // Получить все записи (для расчета серии входов и рекордного дня)
     @Query("SELECT * FROM daily_stats ORDER BY date DESC")
     fun getAllStats(): Flow<List<DailyStatsEntity>>

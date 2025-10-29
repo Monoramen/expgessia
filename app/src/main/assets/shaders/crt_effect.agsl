@@ -1,0 +1,54 @@
+uniform shader composable;
+uniform float time;
+uniform float2 resolution;
+
+// Функция для имитации кривизны экрана (barrel distortion)
+float2 curve(float2 uv) {
+    uv = uv * 2.0 - 1.0;
+    // ⬇️ ИЗМЕНЕНИЕ 1: УМЕНЬШАЕМ СИЛУ КРИВИЗНЫ (было 0.1)
+    float power = 0.001; // Снижаем кривизну в 2 раза
+    float r = length(uv);
+    float f = 1.0 - power * (r * r);
+    return (uv * f) * 0.5 + 0.5;
+}
+
+half4 main(float2 coord) {
+    // 1. Применяем кривизну
+    float2 curved_uv = coord.xy / resolution;
+    float2 curved_coord_normalized = curve(curved_uv);
+
+    // Переводим обратно в абсолютные координаты для выборки
+    float2 curved_coord = curved_coord_normalized * resolution;
+
+    // Если координата вышла за пределы (например, в углах), делаем ее черной
+    if (curved_coord_normalized.x < 0.0 || curved_coord_normalized.x > 1.0 ||
+        curved_coord_normalized.y < 0.0 || curved_coord_normalized.y > 1.0) {
+        return half4(0.0, 0.0, 0.0, 1.0);
+    }
+
+    // Получаем исходный цвет с учетом кривизны
+    half4 color = composable.eval(curved_coord);
+
+    // 2. Эффект строк развертки (Scanlines)
+    // ⬇️ ИЗМЕНЕНИЕ 2: УВЕЛИЧИВАЕМ ЧАСТОТУ ЛИНИЙ (было 1.5), делаем их более тонкими
+    float line_freq = 2.0; // Увеличиваем частоту, линии тоньше и менее заметны
+
+    // Имитация затемнения строки
+    float v_coord_y = curved_coord.y + time * 50.0;
+    // ⬇️ ИЗМЕНЕНИЕ 3: НАСТРАИВАЕМ ЗАТЕМНЕНИЕ И КОНТРАСТ СТРОК (было 0.4, 0.8, 0.2)
+    float scanline_effect = 0.5 + 0.5 * sin(v_coord_y / line_freq * 3.14159);
+    scanline_effect = pow(scanline_effect, 0.2) * 0.9 + 0.1; // Менее агрессивное затемнение
+
+    color.rgb *= scanline_effect;
+
+    // 3. Виньетка (Vignette)
+    // ⬇️ ИЗМЕНЕНИЕ 4: РАДИУС И МЯГКОСТЬ ВИНЬЕТКИ (было 0.7, 0.4)
+    float vignette_radius = 0.98; // Увеличиваем радиус, чтобы центральная часть была больше
+    float vignette_softness = 0.8; // Делаем ее намного мягче
+    float dist = distance(curved_uv, float2(0.5, 0.5));
+    float vignette = smoothstep(vignette_radius, vignette_radius - vignette_softness, dist);
+
+    color.rgb *= vignette;
+
+    return color;
+}
