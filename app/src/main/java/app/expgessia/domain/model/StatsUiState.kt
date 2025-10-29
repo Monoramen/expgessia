@@ -1,5 +1,7 @@
 package app.expgessia.domain.model
 
+import app.expgessia.R
+
 data class StatsUiState(
     val totalTasksCompleted: Int = 0,
     val totalXpEarned: Int = 0,
@@ -10,5 +12,5 @@ data class StatsUiState(
     val xpToday: Int = 0,
     val lastVisit: Long = 0L,
     val timeInGameMs: Long = 0L,
-    val status: String = "НЕТ ДАННЫХ"
+    val status: Int = R.string.value_status
 )

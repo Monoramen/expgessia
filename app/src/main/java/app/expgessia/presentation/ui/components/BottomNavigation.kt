@@ -59,8 +59,8 @@ private fun CustomBottomNavItem(
 ) {
     // ⭐️ АНИМАЦИЯ: Плавное изменение масштаба
     val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.15f else 1.0f,
-        animationSpec = tween(durationMillis = 250),
+        targetValue = if (isSelected) 1.1f else 1.0f,
+        animationSpec = tween(durationMillis = 300),
         label = "nav_icon_scale"
     )
 

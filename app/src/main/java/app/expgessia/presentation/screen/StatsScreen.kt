@@ -41,6 +41,7 @@ import app.expgessia.presentation.ui.theme.FalloutFontFamilyDigits
 import app.expgessia.presentation.ui.theme.FalloutOutline
 import app.expgessia.presentation.ui.theme.FalloutPrimary
 import app.expgessia.presentation.viewmodel.StatsViewModel
+import app.expgessia.utils.TimeUtils
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import java.text.SimpleDateFormat // ⭐️ ИМПОРТ: для форматирования даты
@@ -198,12 +199,11 @@ fun mapStatsUiStateToPlayerStats(uiState: StatsUiState): List<PlayerStat> {
         ),
         PlayerStat(
             title = stringResource(R.string.stat_last_visit),
-            // ⭐️ ИСПРАВЛЕНО: Форматируем Long (timestamp) в читаемую дату
-            value = formatLastVisit(uiState.lastVisit)
+            value = TimeUtils.formatLastVisit(uiState.lastVisit)
         ),
         PlayerStat(
             title = stringResource(R.string.stat_time_in_game),
-            value = formatTime(uiState.timeInGameMs)
+            value = TimeUtils.formatTime(uiState.timeInGameMs)
         ),
         PlayerStat(
             title = stringResource(R.string.stat_login_streak),
@@ -215,7 +215,7 @@ fun mapStatsUiStateToPlayerStats(uiState: StatsUiState): List<PlayerStat> {
         ),
         PlayerStat(
             title = stringResource(R.string.stat_status),
-            value = uiState.status
+            value = stringResource(id = uiState.status)
         )
     )
 }

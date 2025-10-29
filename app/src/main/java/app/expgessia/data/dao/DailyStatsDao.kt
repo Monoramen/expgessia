@@ -40,4 +40,9 @@ interface DailyStatsDao {
     // Получить максимальный опыт за день (для статистики "РЕКОРДНЫЙ ДЕНЬ")
     @Query("SELECT MAX(total_xp_earned) FROM daily_stats")
     fun getRecordXpDay(): Flow<Int?>
+
+    @Query("SELECT SUM(time_in_app_ms) FROM daily_stats")
+    fun getTimeInApp(): Flow<Long?>
+
+
 }

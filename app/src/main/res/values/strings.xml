@@ -89,4 +89,9 @@
     <string name="footer_end_of_file">== КОНЕЦ ФАЙЛА ==</string>
     <string name="placeholder_no_data">НЕТ ДАННЫХ</string>
 
+    <string name="value_sec">%d с</string>
+    <string name="value_minute">%d м</string>
+    <string name="value_hour">%d ч</string>
+
+    <string name="value_status">АКТИВЕН</string>
 </resources>

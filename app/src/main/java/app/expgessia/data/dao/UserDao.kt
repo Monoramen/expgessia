@@ -28,5 +28,8 @@ interface UserDao {
     suspend fun deleteUser()
 
 
+    @Query("SELECT last_login FROM USERS LIMIT 1")
+    suspend fun getLastLogin(): Long?
+
 
 }

@@ -15,4 +15,10 @@ interface UserRepository {
     suspend fun levelUpIfPossible()
     suspend fun getCurrentUserOnce(): User?
     suspend fun updateUserName(newName: String)
+
+    suspend fun updateLastLogin(lastLogin: Long)
+
+    fun getLastLogin(): Flow<Long?>
+
+
 }

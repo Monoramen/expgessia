@@ -1,18 +1,30 @@
 // utils/TimeUtils.kt
 package app.expgessia.utils
 
+import android.content.Context
+import androidx.annotation.PluralsRes
+import androidx.annotation.StringRes
+import androidx.compose.material3.DatePickerDefaults.dateFormatter
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import app.expgessia.R
 import app.expgessia.data.entity.TaskEntity
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 // Используем современное Time API (java.time) для точных расчетов
 object TimeUtils {
 
     private val userZoneId: ZoneId = ZoneId.systemDefault()
+
+    private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()) // Формат для даты
     /**
      * Вычисляет временную метку (Long) начала дня (00:00:00) по указанному Timestamp.
      * Это обеспечивает корректный Primary Key для DailyStatsEntity.
@@ -72,4 +84,74 @@ object TimeUtils {
 
         return nextDate.toInstant().toEpochMilli()
     }
+
+    fun formatLastVisit(timestamp: Long): String {
+        if (timestamp == 0L) return "Нет данных"
+        return Instant.ofEpochMilli(timestamp)
+            .atZone(userZoneId)
+            .format(dateFormatter)
+    }
+
+
+    data class TimePart(
+        @PluralsRes val resourceId: Int, // R.plurals.time_hours, R.plurals.time_minutes и т.д.
+        val count: Long // Количество (1, 2, 5 и т.д.)
+    )
+
+    /**
+     * Возвращает список TimePart вместо готовой строки.
+     * Эту функцию можно вызывать из ViewModel или другого не-Compose кода.
+     */
+    fun formatTimeData(milliseconds: Long): List<TimePart> {
+        if (milliseconds <= 0) {
+            return listOf(TimePart(R.plurals.time_seconds, 0L))
+        }
+
+        val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(milliseconds)
+        val seconds = totalSeconds % 60
+        val minutes = (totalSeconds / 60) % 60
+        val hours = totalSeconds / 3600
+
+        val parts = mutableListOf<TimePart>()
+
+        // 1. Часы
+        if (hours > 0) {
+            parts.add(TimePart(R.plurals.time_hours, hours))
+        }
+
+        // 2. Минуты
+        if (minutes > 0) {
+            parts.add(TimePart(R.plurals.time_minutes, minutes))
+        }
+
+        // 3. Секунды
+        if (seconds > 0 || parts.isEmpty()) {
+            parts.add(TimePart(R.plurals.time_seconds, seconds))
+        }
+
+        // Обработка 0 < milliseconds < 1000
+        if (parts.isEmpty() && milliseconds > 0) {
+            parts.add(TimePart(R.plurals.time_seconds, 0L))
+        }
+
+        return parts
+    }
+
+
+    @Composable
+    fun formatTime(milliseconds: Long): String {
+        // 1. Получаем данные (этот вызов не требует Context)
+        val timeParts = formatTimeData(milliseconds)
+
+        // 2. Преобразуем данные в локализованные строки внутри Composable
+        val formattedParts = timeParts.map { part ->
+            // Здесь используется pluralStringResource:
+            // - part.count.toInt() выбирает правильную форму (one, few, many, other)
+            // - part.count вставляется вместо %d в строку
+            pluralStringResource(id = part.resourceId, count = part.count.toInt(), formatArgs = arrayOf(part.count))
+        }
+
+        return formattedParts.joinToString(" ")
+    }
+
 }

@@ -26,4 +26,6 @@ interface DailyStatsRepository {
     fun getTotalTasksCompleted(): Flow<Int>
 
     fun getTodayXp(): Flow<Int>
+
+    fun getTimeInApp(): Flow<Long?>
 }

@@ -83,4 +83,16 @@ class UserRepositoryImpl @Inject constructor(
         updateUser(updatedUser)
     }
 
+
+    override suspend fun updateLastLogin(lastLogin: Long) {
+        val currentUser = getCurrentUserOnce() ?: return
+        val updatedUser = currentUser.copy(lastLogin = lastLogin)
+        userDao.updateUser(updatedUser.toEntity())
+    }
+
+    override fun getLastLogin(): Flow<Long?> {
+        return userDao.getUserStream().map { userEntity ->
+            userEntity?.lastLogin
+        }
+    }
 }

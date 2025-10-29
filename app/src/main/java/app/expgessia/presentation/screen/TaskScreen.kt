@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import app.expgessia.domain.model.TaskUiModel
 import app.expgessia.presentation.viewmodel.TaskViewModel
 import app.expgessia.ui.components.TaskItem
@@ -56,7 +55,7 @@ fun TaskScreen(
                 start = 2.dp,
                 end = 2.dp,
                 top = 2.dp, // Берем отступ от TopBar
-                bottom = paddingValues.calculateBottomPadding() // Берем отступ от BottomBar
+                bottom = paddingValues.calculateBottomPadding() + 4.dp // Берем отступ от BottomBar
             )
         ) {
             // items теперь корректно работает с TaskUiModel

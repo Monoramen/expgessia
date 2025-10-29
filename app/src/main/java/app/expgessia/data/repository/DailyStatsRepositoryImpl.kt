@@ -116,4 +116,8 @@ class DailyStatsRepositoryImpl @Inject constructor(
         val startOfDay = TimeUtils.calculateStartOfDay(System.currentTimeMillis())
         return dailyStatsDao.getXpByDate(startOfDay).map { it ?: 0 }
     }
+
+    override fun getTimeInApp(): Flow<Long?> {
+        return dailyStatsDao.getTimeInApp()
+    }
 }

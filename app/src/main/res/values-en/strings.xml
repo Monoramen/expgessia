@@ -85,6 +85,10 @@
     <string name="footer_end_of_file">== END OF FILE ==</string>
     <string name="placeholder_no_data">NOT HAVE DATA</string>
 
+    <string name="value_sec">%d sec</string>
+    <string name="value_minute">%d min</string>
+    <string name="value_hour">%d hour</string>
 
+    <string name="value_status">ACTIVE</string>
 
 </resources>
