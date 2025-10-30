@@ -12,7 +12,7 @@ interface TaskCompletionRepository {
      * Должна: обновить TaskEntity, UserEntity, DailyStatsEntity и создать TaskCompletionEntity.
      */
     suspend fun completeTask(taskEntity: TaskEntity, completionTimestamp: Long)
-
+    suspend fun undoCompleteTask(taskEntity: TaskEntity)
     fun getTotalCompletedTasksCount(): Flow<Int>
 
     fun getXpEarnedByCharacteristic(characteristicId: Int): Flow<Int>
