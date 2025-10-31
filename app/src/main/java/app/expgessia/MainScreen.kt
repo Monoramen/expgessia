@@ -1,17 +1,22 @@
 package app.expgessia
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,6 +24,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -30,14 +38,18 @@ import androidx.navigation.navArgument
 import app.expgessia.presentation.screen.AddTaskScreen
 import app.expgessia.presentation.screen.CalendarScreen
 import app.expgessia.presentation.screen.CharacteristicScreen
+import app.expgessia.presentation.screen.TaskDetailsScreen
 import app.expgessia.presentation.screen.TaskRoute
 import app.expgessia.presentation.screen.UserScreen
-import app.expgessia.presentation.ui.components.CustomTopAppBar
+import app.expgessia.presentation.ui.components.navbar.CustomTopAppBar
 import app.expgessia.presentation.ui.screens.StatsScreen
 import app.expgessia.presentation.viewmodel.TaskViewModel
 import app.expgessia.ui.components.AppBottomNavigation
 import app.expgessia.ui.components.Tab
 import app.expgessia.ui.components.TopAppHeroTabs
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 
 // --- КОНСТАНТЫ МАРШРУТОВ (для ясности) ---
@@ -48,18 +60,19 @@ const val STATS_ROUTE = "stats"
 
 // Маршрут для добавления/редактирования с аргументом taskId
 const val ADD_EDIT_TASK_ROUTE = "add_edit_task_route?taskId={taskId}"
-
+const val DAILY_TASKS_ROUTE = "daily_tasks_route?date={date}"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
+
     // Инициализируем NavController, если он не передан
     navController: NavHostController = rememberNavController(),
     modifier: Modifier = Modifier,
 ) {
-
+    var currentMonth by remember { mutableStateOf(LocalDate.now().withDayOfMonth(1)) }
     var currentTab by remember { mutableStateOf(Tab.HERO) }
-
+    var topBarDate by remember { mutableStateOf(LocalDate.now()) }
     // 1. УДАЛЯЕМ taskToEditId и currentRoute (он будет из NavController)
     val taskViewModel: TaskViewModel = hiltViewModel()
 
@@ -76,7 +89,12 @@ fun MainScreen(
         val route = "add_edit_task_route?taskId=$taskId"
         navController.navigate(route)
     }
-
+    val navigateToDailyTasks = { date: LocalDate ->
+        // Форматируем дату в строку для передачи через аргумент
+        val dateString = date.format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val route = "daily_tasks_route?date=$dateString"
+        navController.navigate(route)
+    }
 
     Scaffold(
         topBar = {
@@ -97,21 +115,21 @@ fun MainScreen(
                         actions = {
                             // ✅ Кнопка "Добавить" вызывает NavController.navigate
                             IconButton(onClick = { navigateToTask(0L) }) {
-                                androidx.compose.material3.Icon(
+                                Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = "Add",
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             IconButton(onClick = { /* TODO: onSearch */ }) {
-                                androidx.compose.material3.Icon(
+                                Icon(
                                     Icons.Filled.Search,
                                     contentDescription = "Search",
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             IconButton(onClick = { /* TODO: onMenuClick */ }) {
-                                androidx.compose.material3.Icon(
+                                Icon(
                                     Icons.Filled.MoreVert,
                                     contentDescription = "More",
                                     tint = MaterialTheme.colorScheme.onSurface
@@ -150,18 +168,91 @@ fun MainScreen(
                 }
 
                 CALENDAR_ROUTE -> {
+
                     CustomTopAppBar(
-                        title = stringResource(R.string.nav_calendar),
-                        navigationIcon = Icons.Filled.ArrowBackIosNew,
-                        onNavigationClick = {
-                            navController.navigate(HERO_ROUTE) {
-                                popUpTo(
-                                    HERO_ROUTE
-                                ) { inclusive = true }
+
+                        title = "",
+                        navigationIcon = null, // Не используем, заменено на навигацию по месяцам
+                        onNavigationClick = null,
+                        actions = {
+                            // Если нужны иконки действий справа, добавьте их сюда
+                        },
+                        // ⭐️ ПЕРЕНОСИМ ЛОГИКУ МЕСЯЦА ПРЯМО В mainContent
+                        mainContent = {
+
+                            val monthYearText = currentMonth.format(
+                                DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
+                                    .withLocale(Locale.getDefault())
+                            )
+                                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                            // ⭐️ 1. Кнопка "Назад" (ChevronLeft)
+                            IconButton(
+                                onClick = { currentMonth = currentMonth.minusMonths(1) },
+                                modifier = Modifier
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowBackIosNew,
+                                    contentDescription = "Previous month"
+                                )
+                            }
+
+                            // ⭐️ 2. Месяц/Год
+                            Text(
+                                text = monthYearText.uppercase(),
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .offset(y = (-10).dp)
+                            )
+
+                            // ⭐️ 3. Кнопка "Вперед" (ChevronRight)
+                            IconButton(
+                                onClick = { currentMonth = currentMonth.plusMonths(1) },
+                                modifier = Modifier
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowForwardIos,
+                                    contentDescription = "Next month"
+                                )
                             }
                         }
                     )
                 }
+
+                DAILY_TASKS_ROUTE.substringBefore("?") -> {
+                    val dateString = navBackStackEntry?.arguments?.getString("date")
+                    val initialDate = dateString?.let { LocalDate.parse(it) } ?: LocalDate.now()
+
+                    // 2. Инициализируем topBarDate при первом входе на экран.
+                    LaunchedEffect(key1 = initialDate) {
+                        topBarDate = initialDate
+                    }
+
+                    // 3. Используем topBarDate (обновляется из TaskDetailsScreen) для заголовка
+                    val titleDate = topBarDate
+
+                    // ⭐️ НОВОЕ ИСПРАВЛЕНИЕ: Отображаем ТОЛЬКО ГОД.
+                    val dynamicTitle = titleDate.year.toString()
+                    CustomTopAppBar(
+                        title = dynamicTitle, // ⭐️ ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЙ ЗАГОЛОВОК
+                        navigationIcon = Icons.Filled.ArrowBackIosNew,
+                        onNavigationClick = { navController.popBackStack() },
+                        actions = {
+                            IconButton(onClick = { navigateToTask(0L) }) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Add",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    )
+                }
+
+
 
                 ADD_EDIT_TASK_ROUTE.substringBefore("?") -> {
                     // Определяем, режим это редактирования или добавления, для заголовка
@@ -220,7 +311,33 @@ fun MainScreen(
                 )
             }
 
-            composable(CALENDAR_ROUTE) { CalendarScreen() }
+            composable(CALENDAR_ROUTE) {
+                CalendarScreen(
+                    currentMonth = currentMonth,
+                    // ⭐️ ПЕРЕДАЕМ ФУНКЦИИ ИЗ СТАНДАРТНОГО БАРА
+                    onPreviousMonth = { currentMonth = currentMonth.minusMonths(1) },
+                    onNextMonth = { currentMonth = currentMonth.plusMonths(1) },
+                    onDayClicked = navigateToDailyTasks
+                )
+            }
+
+            composable(
+                route = DAILY_TASKS_ROUTE,
+                arguments = listOf(navArgument("date") {
+                    type = NavType.StringType // Дата передается как строка
+                })
+            ) { backStackEntry ->
+                val dateString = backStackEntry.arguments?.getString("date")
+                val date = dateString?.let { LocalDate.parse(it) } ?: LocalDate.now()
+
+                TaskDetailsScreen(
+                    date = date,
+                    onSelectedDateChange = { newDate ->
+                        topBarDate = newDate
+                    },
+                )
+            }
+
             composable(STATS_ROUTE) { StatsScreen() }
 
             // --- НОВАЯ ДЕСТИНАЦИЯ: Add/Edit Task Screen ---

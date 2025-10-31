@@ -11,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import app.expgessia.R
 import app.expgessia.data.entity.TaskEntity
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -152,6 +153,58 @@ object TimeUtils {
         }
 
         return formattedParts.joinToString(" ")
+    }
+
+
+
+
+    /**
+     * Проверяет, запланирована ли повторяющаяся задача на указанную дату.
+     * Использует текущую системную ZoneId.
+     */
+    fun isTaskScheduledOnDate(task: TaskEntity, date: LocalDate): Boolean {
+        // 1. NON-Repeating Tasks:
+        if (task.repeatMode.uppercase(Locale.ROOT) == "NONE") {
+            // Проверяем, совпадает ли дата запланированного выполнения (если есть) с date
+            return task.scheduledFor?.let { timestamp ->
+                val scheduledDate = Instant.ofEpochMilli(timestamp).atZone(userZoneId).toLocalDate()
+                scheduledDate.isEqual(date)
+            } ?: false
+        }
+
+        // 2. Daily Tasks:
+        if (task.repeatMode.uppercase(Locale.ROOT) == "DAILY") {
+            // Ежедневные задачи запланированы на любой день
+            return true
+        }
+
+        // 3. Weekly Tasks:
+        if (task.repeatMode.uppercase(Locale.ROOT) == "WEEKLY") {
+            // repeatDetails: "1,3,5" (Пн, Ср, Пт) -> DayOfWeek.value (1-7)
+            val targetDays = task.repeatDetails
+                ?.split(",")
+                ?.mapNotNull { it.trim().toIntOrNull() }
+                ?.filter { it in 1..7 }
+                ?: return false // Если нет деталей, то не запланировано
+
+            return targetDays.contains(date.dayOfWeek.value)
+        }
+
+        // 4. Monthly Tasks:
+        if (task.repeatMode.uppercase(Locale.ROOT) == "MONTHLY") {
+            // repeatDetails: "15" (15-е число месяца)
+            val targetDayOfMonth = task.repeatDetails?.toIntOrNull() ?: return false
+
+            // ВАЖНО: Учитываем, что, если указано "31", а в месяце 30 дней,
+            // то задача должна быть запланирована на последний день месяца.
+            val maxDayInMonth = date.lengthOfMonth()
+            val scheduledDay = minOf(targetDayOfMonth, maxDayInMonth)
+
+            return date.dayOfMonth == scheduledDay
+        }
+
+        // По умолчанию: NONE или неизвестный режим
+        return false
     }
 
 }

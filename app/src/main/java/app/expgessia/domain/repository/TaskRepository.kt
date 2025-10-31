@@ -19,4 +19,7 @@ interface TaskRepository {
 
     suspend fun resetOverdueRepeatingTasks()
 
+    fun getRepeatingTasks(): Flow<List<Task>>
+
+
 }

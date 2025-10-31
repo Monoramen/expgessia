@@ -90,4 +90,8 @@ interface TaskDao {
     suspend fun resetOverdueRepeatingTasks(currentTime: Long)
 
 
+    @Query("SELECT * FROM tasks WHERE repeat_mode != 'NONE'")
+    fun getAllRepeatingTasks(): Flow<List<TaskEntity>>
+
+
 }

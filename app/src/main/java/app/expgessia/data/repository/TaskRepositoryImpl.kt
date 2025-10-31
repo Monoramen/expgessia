@@ -81,5 +81,14 @@ class TaskRepositoryImpl @Inject constructor(
     override suspend fun resetOverdueRepeatingTasks() {
         taskDao.resetOverdueRepeatingTasks(System.currentTimeMillis())
     }
+
+
+    override fun getRepeatingTasks(): Flow<List<Task>> {
+        return taskDao.getAllRepeatingTasks().map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+
 }
 

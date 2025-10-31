@@ -100,7 +100,7 @@ class TaskViewModel @Inject constructor(
     /**
      * Преобразует список Task в список TaskUiModel, асинхронно загружая iconResName для каждой задачи.
      */
-    private suspend fun mapToUiModel(tasks: List<Task>): List<TaskUiModel> {
+    suspend fun mapToUiModel(tasks: List<Task>): List<TaskUiModel> {
         // Используем IO-диспетчер для сетевых/базовых операций (хотя Room уже это делает,
         // это хорошая практика для async/awaitAll)
         return withContext(Dispatchers.IO) {

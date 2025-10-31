@@ -86,6 +86,7 @@ val Typography = Typography(
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),
+
     // Текст кнопок/меток
     labelLarge = TextStyle(
         fontFamily = FalloutFontFamily,
@@ -109,7 +110,19 @@ val Typography = Typography(
         fontSize = 16.sp,
         lineHeight = 16.sp,
         letterSpacing = 1.sp
-    )
+    ),
 
 
+
+
+)
+
+val SmallTypography = Typography(
+    bodySmall = TextStyle(
+        fontFamily = FalloutFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 8.sp,
+        lineHeight = 8.sp,
+        letterSpacing = 0.3.sp
+    ),
 )

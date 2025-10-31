@@ -110,62 +110,11 @@ class TaskCompletionRepositoryImpl @Inject constructor(
     override suspend fun undoCompleteTask(taskEntity: TaskEntity) {
         val startOfDay = 0
 
-        // --- Room Transaction: обеспечивает атомарность всех обновлений ---
-        db.withTransaction {
-            val currentUser = userDao.getUser() ?: throw IllegalStateException("User not found")
-            val xpEarned = calculateFinalXp(taskEntity, currentUser)
-
-            // 1. ОБНОВЛЕНИЕ USER ENTITY (XP и LEVEL UP)
-            val updatedUser = processLevelUpAndXp(currentUser, xpEarned)
-            userDao.updateUser(updatedUser) //
-
-            // 2. ОБНОВЛЕНИЕ TASK ENTITY (Планирование следующей даты)
-            val isRepeating = taskEntity.repeatMode.uppercase(Locale.ROOT) != "NONE"
-
-            // 💡 ИЗМЕНЕНИЕ: Для повторяющихся задач, устанавливаем isCompleted = true,
-            // а scheduledFor указывает, когда ее нужно будет сбросить на false.
-            val updatedTask = if (isRepeating) {
-                taskEntity.copy(
-                    scheduledFor = TimeUtils.calculateNextScheduledDate(
-                        taskEntity,
-                        completionTimestamp
-                    ),
-                    isCompleted = true // <-- ИЗМЕНЕНИЕ! Задача завершена до следующего scheduledFor
-                )
-            } else {
-                taskEntity.copy(isCompleted = true)
-            }
-            taskDao.updateTask(updatedTask) //
-
-            // 3. СОЗДАНИЕ TASK COMPLETION ENTITY (История)
-            val completion = TaskCompletionEntity(
-                id = 0,
-                taskId = taskEntity.id,
-                completionDate = completionTimestamp, // Long
-                xpEarned = xpEarned,
-                characteristicId = taskEntity.characteristicId,
-                isRepeating = isRepeating
-            )
-            taskCompletionDao.insert(completion)
-
-            // 4. ОБНОВЛЕНИЕ DAILY STATS ENTITY
-            val currentStats = dailyStatsDao.getStatsByDate(startOfDay)
-            val newStats = currentStats?.copy(
-                totalXpEarned = currentStats.totalXpEarned + xpEarned,
-                tasksCompletedCount = currentStats.tasksCompletedCount + 1
-            ) ?: DailyStatsEntity(
-                date = startOfDay,
-                totalXpEarned = xpEarned,
-                tasksCompletedCount = 1,
-                timeInAppMs = 0
-            )
-            dailyStatsDao.insertOrUpdate(newStats)
-        }
     }
 
     // --- Вспомогательные функции (Helper Methods) ---
 
-    private fun calculateFinalXp(task: TaskEntity, user: UserEntity): Int {
+    fun calculateFinalXp(task: TaskEntity, user: UserEntity): Int {
         val baseXP = task.xpReward
         // Бонус S.P.E.C.I.A.L.: +5% XP за каждую единицу соответствующего атрибута
         val bonusValue = when (task.characteristicId) {
