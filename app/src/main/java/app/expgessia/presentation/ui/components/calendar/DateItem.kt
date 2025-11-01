@@ -30,7 +30,6 @@ fun DateItem(
     onDateClicked: (LocalDate) -> Unit,
     scaleFactor: Float = 1f,
 ) {
-    // ✅ ИСПОЛЬЗУЕМ ФОРМАТТЕР ДЛЯ СОКРАЩЕНИЯ МЕСЯЦА: "MMM" (например, OCT, NOV)
     val monthFormatter = DateTimeFormatter.ofPattern("MMM", Locale.getDefault())
     val dayOfWeekFormatter = DateTimeFormatter.ofPattern("E", Locale.getDefault())
 

@@ -43,10 +43,7 @@ private val navItems = listOf(
     NavItem("stats", R.drawable.statistic, R.string.nav_stats)
 )
 
-/**
- * Модификатор для отрисовки круглой обводки с эффектом исчезающих краев (радиальный градиент).
- * Обводка рисуется только в том случае, если isSelected = true.
- */
+
 
 @Composable
 private fun CustomBottomNavItem(
@@ -117,8 +114,7 @@ fun AppBottomNavigation(
 
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {

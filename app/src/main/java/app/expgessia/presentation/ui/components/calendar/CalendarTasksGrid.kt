@@ -1,15 +1,15 @@
 package app.expgessia.presentation.ui.components.calendar
 
+// ⭐️ АЛИАС: Используем алиас для Domain Task
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -31,26 +32,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.expgessia.presentation.viewmodel.CalendarViewModel
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
 import kotlin.math.roundToInt
-
-// ⭐️ АЛИАС: Используем алиас для Domain Task
 import app.expgessia.domain.model.Task as DomainTask
-import kotlinx.coroutines.flow.map
-val defaultBorderColor = Color(0xFF656865)
-/**
- * Преобразует Map<LocalDate, List<DomainTask>> (из ViewModel)
- * в Map<LocalDate, List<Task>> (для UI-компонента CalendarMonthGrid).
- */
+
+val defaultBorderColor = Color(0xFFCCD7CC)
+
 private fun toUITaskMap(
-    domainTaskMap: Map<LocalDate, List<DomainTask>>
-): Map<LocalDate, List<Task>> {
+    domainTaskMap: Map<LocalDate, List<DomainTask>>,
+): Map<LocalDate, List<CalendarSimpleTask>> {
     return domainTaskMap.mapValues { (_, domainTasks) ->
         domainTasks.map { domainTask ->
             // Маппинг: DomainTask -> локальный UI Task
-            Task(id = domainTask.id, name = domainTask.title)
+            CalendarSimpleTask(id = domainTask.id, name = domainTask.title)
         }
     }
 }
@@ -69,31 +66,26 @@ fun CalendarTasksGrid(
     // ДАННЫЕ И СОСТОЯНИЯ
     // ==========================================================
 
-    // --- Получение задач для 3 месяцев ---
-    val currentMonthTasks by viewModel
-        .getTasksForMonth(currentMonth)
-        .map(::toUITaskMap)
+    val currentMonthTasks by viewModel.getTasksForMonth(currentMonth).map(::toUITaskMap)
         .collectAsState(initial = emptyMap())
 
     val previousMonth = remember(currentMonth) { currentMonth.minusMonths(1) }
-    val previousMonthTasks by viewModel
-        .getTasksForMonth(previousMonth)
-        .map(::toUITaskMap)
+    val previousMonthTasks by viewModel.getTasksForMonth(previousMonth).map(::toUITaskMap)
         .collectAsState(initial = emptyMap())
 
     val nextMonth = remember(currentMonth) { currentMonth.plusMonths(1) }
-    val nextMonthTasks by viewModel
-        .getTasksForMonth(nextMonth)
-        .map(::toUITaskMap)
+    val nextMonthTasks by viewModel.getTasksForMonth(nextMonth).map(::toUITaskMap)
         .collectAsState(initial = emptyMap())
+
 
     // --- Состояния анимации/жестов ---
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current.density
     var fullWidthPx by remember { mutableStateOf(0f) }
+    var fullHeightPx by remember { mutableStateOf(0f) } // <-- новоe
     var dragOffset by remember { mutableStateOf(0f) }
     val animatedOffset = remember { Animatable(0f) }
-    val dividerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+    val dividerColor = Color(0xFF807B7B)
 
     val onSwipeAction: (Float) -> Unit = { finalOffset ->
         coroutineScope.launch {
@@ -121,81 +113,103 @@ fun CalendarTasksGrid(
     // --- Заголовки дней недели ---
     val daysOfWeek = remember { DayOfWeek.values() }
     val mondayFirstDays = remember { daysOfWeek.slice(1..6) + daysOfWeek[0] }
-
+    val dayHeaderHeightDp = 26.dp // <- твой Row с днями недели занимает ~30–40dp
     Column(modifier = modifier) {
         Row(
             modifier = Modifier
+                .height(dayHeaderHeightDp)
                 .fillMaxWidth()
-                // ⭐️ ИСПРАВЛЕНО: Устанавливаем серый фон для Row
                 .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                .padding(vertical = 4.dp)
+                .drawBehind {
+                    val strokeWidth = 0.1.dp.toPx()
+                    val columnWidth = size.width / 7f
+                    val halfHeight = size.height / 2f
+
+                    // Рисуем вертикальные линии между заголовками
+                    for (i in 1 until 7) {
+                        val x = columnWidth * i
+                        drawLine(
+                            color = Color(0xFF979797),
+                            start = androidx.compose.ui.geometry.Offset(x, halfHeight),   // половина высоты
+                            end = androidx.compose.ui.geometry.Offset(x, size.height),   // вниз до конца
+                            strokeWidth = strokeWidth
+                        )
+                    }
+                }
+                .padding(vertical = 2.dp)
         ) {
             mondayFirstDays.forEach { day ->
                 Text(
                     text = day.name.substring(0, 3),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.labelSmall,
-                    // Цвет текста сделаем более контрастным, чем приглушенный фон
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f)
                 )
             }
         }
 
-        // --- Сетка Календаря с Анимацией ---
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth()
-                .border(1.dp, defaultBorderColor)
-                .onGloballyPositioned { coordinates ->
-                    fullWidthPx = coordinates.size.width.toFloat()
-                }
-                .pointerInput(currentMonth) {
-                    detectHorizontalDragGestures(
-                        onDragEnd = { onSwipeAction(dragOffset) },
-                        onDragCancel = { onSwipeAction(dragOffset) },
-                        onHorizontalDrag = { change, dragAmount ->
-                            change.consume()
-                            dragOffset += dragAmount
-                        }
-                    )
-                }
-        ) {
 
+        Box(modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+            .onGloballyPositioned { coordinates ->
+                fullWidthPx = coordinates.size.width.toFloat()
+                fullHeightPx = coordinates.size.height.toFloat() // <-- читаем высоту
+            }
+            .pointerInput(currentMonth) {
+                detectHorizontalDragGestures(
+                    onDragEnd = { onSwipeAction(dragOffset) },
+                    onDragCancel = { onSwipeAction(dragOffset) },
+                    onHorizontalDrag = { change, dragAmount ->
+                        change.consume()
+                        dragOffset += dragAmount
+                    })
+            }) {
             val totalOffsetPx = animatedOffset.value + dragOffset
             val totalOffsetDp = (totalOffsetPx / density).dp
 
-            // ⭐️ 1. Сетка текущего месяца (А)
+            // высоту хедера лучше измерить, но можно временно фиксированно:
+
+            val cellHeightDp = if (fullHeightPx > 0f) {
+                ((fullHeightPx / 5f) / density).dp
+            } else {
+                0.dp
+            }
+
+
             CalendarMonthGrid(
                 month = currentMonth,
                 tasksByDate = currentMonthTasks,
                 offset = Modifier.offset(x = totalOffsetDp),
                 dividerColor = dividerColor,
-                onDayClicked = onDayClicked
+                onDayClicked = onDayClicked,
+                cellHeight = cellHeightDp // <-- передаём сюда
             )
 
-            // ⭐️ 2. Сетка следующего месяца (B) - появляется справа
             if (totalOffsetPx < 0) {
                 CalendarMonthGrid(
                     month = nextMonth,
                     tasksByDate = nextMonthTasks,
-                    // Смещение: TotalOffset + FullWidth
-                    offset = Modifier.offset(x = (totalOffsetPx + fullWidthPx).roundToInt().div(density).dp),
+                    offset = Modifier.offset(
+                        x = (totalOffsetPx + fullWidthPx).roundToInt().div(density).dp
+                    ),
                     dividerColor = dividerColor,
-                    onDayClicked = onDayClicked
+                    onDayClicked = onDayClicked,
+                    cellHeight = cellHeightDp
                 )
             }
 
-            // ⭐️ 3. Сетка предыдущего месяца (С) - появляется слева
             if (totalOffsetPx > 0) {
                 CalendarMonthGrid(
                     month = previousMonth,
                     tasksByDate = previousMonthTasks,
-                    // Смещение: TotalOffset - FullWidth
-                    offset = Modifier.offset(x = (totalOffsetPx - fullWidthPx).roundToInt().div(density).dp),
+                    offset = Modifier.offset(
+                        x = (totalOffsetPx - fullWidthPx).roundToInt().div(density).dp
+                    ),
                     dividerColor = dividerColor,
-                    onDayClicked = onDayClicked
+                    onDayClicked = onDayClicked,
+                    cellHeight = cellHeightDp
                 )
             }
         }
