@@ -11,8 +11,7 @@ fun TaskEntity.toDomain(): Task = Task(
     repeatMode = RepeatMode.valueOf(this.repeatMode),
     repeatDetails = this.repeatDetails,
     xpReward = this.xpReward,
-    isCompleted = this.isCompleted,
-    scheduledFor = this.scheduledFor
+
 )
 
 fun Task.toEntity(): TaskEntity = TaskEntity(
@@ -23,7 +22,6 @@ fun Task.toEntity(): TaskEntity = TaskEntity(
     repeatMode = this.repeatMode.name,
     repeatDetails = this.repeatDetails,
     xpReward = this.xpReward,
-    isCompleted = this.isCompleted,
-    scheduledFor = this.scheduledFor
+
 )
 

@@ -1,4 +1,3 @@
-// utils/TimeUtils.kt
 package app.expgessia.utils
 
 import android.content.Context
@@ -19,13 +18,16 @@ import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import kotlin.math.min
 
 // Используем современное Time API (java.time) для точных расчетов
 object TimeUtils {
+    const val DAY_IN_MILLIS: Long = 24 * 60 * 60 * 1000 // 86,400,000 milliseconds
 
     private val userZoneId: ZoneId = ZoneId.systemDefault()
 
     private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.getDefault()) // Формат для даты
+
     /**
      * Вычисляет временную метку (Long) начала дня (00:00:00) по указанному Timestamp.
      * Это обеспечивает корректный Primary Key для DailyStatsEntity.
@@ -37,6 +39,30 @@ object TimeUtils {
             .toInstant()
             .toEpochMilli()
     }
+
+    /**
+     * 💡 НОВАЯ ФУНКЦИЯ: Конвертирует LocalDate в Long Timestamp начала дня (00:00:00)
+     * в системной временной зоне.
+     * Необходим для запросов к TaskInstanceEntity по scheduled_for.
+     */
+    fun localDateToStartOfDayMillis(date: LocalDate): Long {
+        return date.atStartOfDay(userZoneId) // LocalDate + ZoneId -> ZonedDateTime (00:00:00)
+            .toInstant() // ZonedDateTime -> Instant
+            .toEpochMilli() // Instant -> Long
+    }
+    fun formatTimestampToDate(timestamp: Long, pattern: String = "d MMM yyyy"): String {
+        return Instant.ofEpochMilli(timestamp)
+            .atZone(userZoneId)
+            .format(DateTimeFormatter.ofPattern(pattern, Locale.getDefault()))
+    }
+
+    fun millisToLocalDate(millis: Long): LocalDate {
+        return Instant.ofEpochMilli(millis)
+            .atZone(userZoneId)
+            .toLocalDate()
+    }
+
+
 
     /**
      * Вычисляет Long Timestamp следующего запланированного появления задачи.
@@ -164,12 +190,11 @@ object TimeUtils {
      */
     fun isTaskScheduledOnDate(task: TaskEntity, date: LocalDate): Boolean {
         // 1. NON-Repeating Tasks:
+        // Для задач с режимом "NONE" возвращаем false.
+        // Их единственный экземпляр (TaskInstanceEntity) должен быть уже создан
+        // и календарь должен получать его напрямую из TaskInstanceDao, а не через этот планировщик.
         if (task.repeatMode.uppercase(Locale.ROOT) == "NONE") {
-            // Проверяем, совпадает ли дата запланированного выполнения (если есть) с date
-            return task.scheduledFor?.let { timestamp ->
-                val scheduledDate = Instant.ofEpochMilli(timestamp).atZone(userZoneId).toLocalDate()
-                scheduledDate.isEqual(date)
-            } ?: false
+            return false
         }
 
         // 2. Daily Tasks:
@@ -180,7 +205,7 @@ object TimeUtils {
 
         // 3. Weekly Tasks:
         if (task.repeatMode.uppercase(Locale.ROOT) == "WEEKLY") {
-            // repeatDetails: "1,3,5" (Пн, Ср, Пт) -> DayOfWeek.value (1-7)
+            // repeatDetails: "1,3,5" (Пн=1, Ср=3, Пт=5) -> DayOfWeek.value (1-7)
             val targetDays = task.repeatDetails
                 ?.split(",")
                 ?.mapNotNull { it.trim().toIntOrNull() }
@@ -198,13 +223,14 @@ object TimeUtils {
             // ВАЖНО: Учитываем, что, если указано "31", а в месяце 30 дней,
             // то задача должна быть запланирована на последний день месяца.
             val maxDayInMonth = date.lengthOfMonth()
-            val scheduledDay = minOf(targetDayOfMonth, maxDayInMonth)
+            val scheduledDay = min(targetDayOfMonth, maxDayInMonth)
 
             return date.dayOfMonth == scheduledDay
         }
 
-        // По умолчанию: NONE или неизвестный режим
+        // По умолчанию: неизвестный режим
         return false
     }
+
 
 }

@@ -20,43 +20,32 @@ class StatsViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    // ✅ ИСПРАВЛЕНО: Для более чем 6 Flow нужно использовать перегрузку, которая принимает Iterable<Flow>
-    // и возвращает Flow<Array<Any?>>, где лямбда принимает один аргумент (Array).
     val uiState: StateFlow<StatsUiState> = combine(
-        listOf(
-            dailyStatsRepository.getTotalTasksCompleted(), // 0: Int?
-            dailyStatsRepository.getTotalXpEarned(),      // 1: Int?
-            dailyStatsRepository.getRecordXpDay(),        // 2: Int?
-            dailyStatsRepository.getCurrentStreak(),      // 3: Int?
-            dailyStatsRepository.getTodayXp(),            // 4: Int?
-            dailyStatsRepository.getTimeInApp(),          // 5: Long?
-            userRepository.getLastLogin()                 // 6: Long?
-        )
-    ) { values -> // values - это Array<Any?>, содержащий все результаты
+        dailyStatsRepository.getTotalTasksCompleted(),
+        dailyStatsRepository.getTotalXpEarned(),
+        dailyStatsRepository.getRecordXpDay(),
+        dailyStatsRepository.getCurrentStreak(),
+        dailyStatsRepository.getTodayXp(),
+        dailyStatsRepository.getTimeInApp(),
+        userRepository.getLastLogin()
+    ) { results ->
+        // results - это массив из 7 элементов
+        val tasksCompleted = results[0] as Int
+        val totalXp = results[1] as Int
+        val recordXp = results[2] as Int
+        val streak = results[3] as Int
+        val xpToday = results[4] as Int
+        val timeInApp = results[5] as Long
+        val lastVisit = results[6] as Long?
 
-        // Безопасное приведение типов (Cast) и использование оператора Элвиса для дефолтных значений
-        val tasksCompleted = values[0] as Int? ?: 0
-        val totalXp = values[1] as Int? ?: 0
-        val recordXp = values[2] as Int? ?: 0
-        val streak = values[3] as Int? ?: 0
-        val xpToday = values[4] as Int? ?: 0
-        val timeInGameMs = values[5] as Long? ?: 0L
-        val lastVisit = values[6] as Long? ?: 0L
-
-        // Компонуем все в единый объект StatsUiState
         StatsUiState(
             totalTasksCompleted = tasksCompleted,
             totalXpEarned = totalXp,
             recordXpDay = recordXp,
             currentStreak = streak,
             xpToday = xpToday,
-
-            // Безопасное разворачивание Long? к Long с дефолтом 0L
-            timeInGameMs = timeInGameMs,
-            lastVisit = lastVisit,
-
-            // Статус устанавливается вручную, как и раньше
-            status = R.string.value_status
+            timeInGameMs = timeInApp,
+            lastVisit = lastVisit
         )
     }.stateIn(
         scope = viewModelScope,

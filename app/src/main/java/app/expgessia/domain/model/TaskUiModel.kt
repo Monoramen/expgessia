@@ -6,5 +6,6 @@ data class TaskUiModel(
     val description: String,
     val xpReward: Int,
     val isCompleted: Boolean,
-    val characteristicIconResName: String?
+    val characteristicIconResName: String?,
+
 )

@@ -1,5 +1,6 @@
 package app.expgessia.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -65,7 +66,9 @@ fun TaskItem(
         Row(
             modifier = Modifier
                 // 💡 ИЗМЕНЕНИЕ: Клик по элементу теперь вызывает редактирование
-                .clickable { onTaskEditClicked(task.id) }
+                .clickable {
+                    Log.d("TaskItem", "📱 Edit clicked for task ${task.id}")
+                    onTaskEditClicked(task.id) }
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -118,7 +121,10 @@ fun TaskItem(
             // Кнопка/Иконка статуса завершения
             IconButton(
                 // 💡 ПЕРЕДАЕМ ID для смены статуса
-                onClick = { onTaskCheckClicked(task.id) },
+                onClick = {
+                    Log.d("TaskItem", "📱 Check clicked for task ${task.id}, completed: ${task.isCompleted}")
+                    onTaskCheckClicked(task.id)
+                },
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(

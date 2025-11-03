@@ -49,7 +49,7 @@
     <string name="label_reward">Награда XP</string>
     <string name="button_save">Сохранить</string>
     <string name="button_add_task">Добавить задачу</string>
-
+    <string name="button_delete_task">Уничтожить</string>
 
     <string name="repeat_mode_none">Не повторять</string>
     <string name="repeat_mode_daily">Ежедневно</string>
@@ -94,4 +94,11 @@
     <string name="value_hour">%d ч</string>
 
     <string name="value_status">АКТИВЕН</string>
+
+    <string name="delete_task_title">Удалить задачу</string>
+    <string name="delete_task_message">Вы уверены, что хотите удалить эту задачу? Это действие нельзя отменить.</string>
+    <string name="button_delete">Удалить</string>
+    <string name="button_cancel">Отмена</string>
+
+
 </resources>

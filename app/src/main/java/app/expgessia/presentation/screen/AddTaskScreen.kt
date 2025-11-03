@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -25,7 +28,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -45,6 +50,8 @@ import app.expgessia.domain.model.Task
 import app.expgessia.presentation.viewmodel.TaskViewModel
 import app.expgessia.ui.components.CharacteristicBadge
 
+// Предположим, что TaskAppBar существует и принимает заголовок и onBackClicked
+// Если его нет, оберните Column в Scaffold, как показано ниже.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,21 +71,25 @@ fun AddTaskScreen(
     var xpRewardText by remember { mutableStateOf("10") } // XP как String для TextField
     var selectedCharacteristic by remember { mutableStateOf<Characteristic?>(null) }
     var repeatMode by remember { mutableStateOf(RepeatMode.NONE) }
-// Состояние для режима WEEKLY (1=Пн, 7=Вс)
+    // Состояние для режима WEEKLY (1=Пн, 7=Вс)
     var selectedDaysOfWeek by remember { mutableStateOf(emptySet<Int>()) }
-
-// Состояние для режима MONTHLY
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    // Состояние для режима MONTHLY
     var selectedDayOfMonth by remember { mutableStateOf<Int?>(null) }
 
     // Состояния для выпадающих меню
     var charExpanded by remember { mutableStateOf(false) }
     var repeatExpanded by remember { mutableStateOf(false) }
 
+    // Состояние для прокрутки
+    val scrollState = rememberScrollState()
+
+    // --- LaunchedEffect для загрузки данных при редактировании ---
     LaunchedEffect(taskIdToEdit, characteristics) {
         if (characteristics.isEmpty()) return@LaunchedEffect
 
         // 1. Инициализация выбранной характеристики по умолчанию (только если ничего не выбрано)
-        if (selectedCharacteristic == null) {
+        if (selectedCharacteristic == null && !isEditMode) {
             selectedCharacteristic = characteristics.first()
         }
 
@@ -113,15 +124,35 @@ fun AddTaskScreen(
         }
     }
 
+    // --- Валидация формы ---
     val isFormValid =
         title.isNotBlank() && selectedCharacteristic != null && xpRewardText.toIntOrNull() != null
 
+    // Валидация деталей повторения
+    val isRepeatDetailsValid = when (repeatMode) {
+        RepeatMode.WEEKLY -> selectedDaysOfWeek.isNotEmpty()
+        RepeatMode.MONTHLY -> selectedDayOfMonth != null && selectedDayOfMonth!! in 1..31
+        else -> true
+    }
 
+    // Общая доступность кнопки
+    val isButtonEnabled = isFormValid && isRepeatDetailsValid
+
+    // Обернем в Scaffold, чтобы иметь структуру экрана (TopBar/BottomBar, если нужны)
+    Scaffold(
+        // Предполагаем, что здесь будет TopAppBar с кнопкой "Назад"
+        // topBar = { TaskAppBar(...) }
+    ) { paddingValues ->
         Column(
-            modifier = Modifier
+            modifier = modifier
+                .padding(paddingValues)
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
+                // 💡 ДОБАВЛЕНИЕ: Прокрутка для предотвращения обрезания контента
+                .verticalScroll(scrollState)
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
             // 1. Заголовок
             OutlinedTextField(
                 value = title,
@@ -165,7 +196,7 @@ fun AddTaskScreen(
                     selectedCharacteristic?.let { characteristic ->
                         // ✅ ИСПОЛЬЗУЕМ ПЕРЕИСПОЛЬЗУЕМЫЙ КОМПОНЕНТ
                         CharacteristicBadge(
-                            iconName = characteristic.iconResName, // <--- Сюда нужно вставить новый компонент
+                            iconName = characteristic.iconResName,
                             name = stringResource(characteristic.getLocalizedNameResId()).uppercase(),
                             modifier = Modifier.weight(1f)
                         )
@@ -266,6 +297,9 @@ fun AddTaskScreen(
                             text = { Text(stringResource(mode.stringResId).uppercase()) },
                             onClick = {
                                 repeatMode = mode
+                                // Сброс деталей при смене режима
+                                selectedDaysOfWeek = emptySet()
+                                selectedDayOfMonth = null
                                 repeatExpanded = false
                             }
                         )
@@ -273,9 +307,8 @@ fun AddTaskScreen(
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
-            Spacer(modifier = Modifier.height(16.dp))
 
-// --- УСЛОВНЫЙ КОНТЕНТ: ДЕТАЛИ ПОВТОРЕНИЯ ---
+            // --- УСЛОВНЫЙ КОНТЕНТ: ДЕТАЛИ ПОВТОРЕНИЯ ---
             when (repeatMode) {
                 RepeatMode.WEEKLY -> WeeklyRepeatDetails(
                     selectedDays = selectedDaysOfWeek,
@@ -288,7 +321,6 @@ fun AddTaskScreen(
                     }
                 )
 
-                // Todo: Реализовать MonthlyRepeatDetails (например, с помощью OutlinedTextField)
                 RepeatMode.MONTHLY -> MonthlyRepeatDetails(
                     selectedDay = selectedDayOfMonth,
                     onDaySelected = { day -> selectedDayOfMonth = day }
@@ -298,6 +330,7 @@ fun AddTaskScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp)) // Перед кнопкой сохранения
+
             // 6. Кнопка Сохранения
             Button(
                 onClick = {
@@ -311,62 +344,119 @@ fun AddTaskScreen(
                         else -> null
                     }
 
-                    // 2. Дополнительная проверка возможности сохранения
-                    val canSaveDetails = when (repeatMode) {
-                        RepeatMode.WEEKLY -> details != null
-                        RepeatMode.MONTHLY -> details != null
-                        else -> true
-                    }
-
-                    if (isFormValid && canSaveDetails) {
-                        // 💡 ИЗМЕНЕНИЕ 4: Используем taskIdToEdit в режиме редактирования
+                    if (isButtonEnabled) {
                         val taskId = if (isEditMode) taskIdToEdit!! else 0L
 
                         val taskToSave = Task(
-                            id = taskId, // <--- ИСПОЛЬЗУЕМ ID
+                            id = taskId,
                             title = title,
                             description = description,
                             characteristicId = selectedCharacteristic!!.id,
                             repeatMode = repeatMode,
                             repeatDetails = details,
                             xpReward = xpRewardText.toInt(),
-                            isCompleted = false, // Сохраняем как false, если редактируем
-                            scheduledFor = null
                         )
 
-                        // 💡 ИЗМЕНЕНИЕ 5: Добавляем логику для обновления
                         if (isEditMode) {
                             viewModel.onUpdateTask(taskToSave)
                         } else {
                             viewModel.onAddTask(taskToSave)
                         }
 
-                        onBackClicked() // закрываем экран после сохранения/обновления
+                        // 💡 ВАЖНО: Обновляем данные после сохранения
+                        viewModel.forceRefresh()
+                        onBackClicked()
                     }
                 },
-                enabled = isFormValid && when (repeatMode) {
-                    RepeatMode.WEEKLY -> selectedDaysOfWeek.isNotEmpty()
-                    RepeatMode.MONTHLY -> selectedDayOfMonth != null
-                    else -> true
-                },
+                enabled = isButtonEnabled,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // 💡 ИЗМЕНЕНИЕ 6: Текст кнопки
-                Text(if (isEditMode) stringResource(R.string.button_save).uppercase() else stringResource(R.string.button_add_task).uppercase())
+                Text(
+                    if (isEditMode) stringResource(R.string.button_save).uppercase()
+                    else stringResource(R.string.button_add_task).uppercase()
+                )
             }
+
+
+
+            if (isEditMode) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        showDeleteDialog = true
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.button_delete_task).uppercase())
+                }
+
+                Spacer(modifier = Modifier.height(16.dp)) // Дополнительный отступ внизу
+            }
+
+
         }
+
     }
 
 
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = {
+                Text(
+                    stringResource(R.string.delete_task_title),
+                    style = MaterialTheme.typography.titleLarge // Используем ваш кастомный стиль
+                )
+            },
+            text = {
+                Text(
+                    stringResource(R.string.delete_task_message),
+                    style = MaterialTheme.typography.bodyLarge // Используем ваш кастомный стиль
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onDeleteTask(taskIdToEdit!!)
+                        viewModel.forceRefresh()
+                        showDeleteDialog = false
+                        onBackClicked()
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.button_delete),
+                        style = MaterialTheme.typography.labelLarge // Используем ваш кастомный стиль
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeleteDialog = false }
+                ) {
+                    Text(
+                        stringResource(R.string.button_cancel),
+                        style = MaterialTheme.typography.labelLarge // Используем ваш кастомный стиль
+                    )
+                }
+            }
+        )
+    }
 
-// Файл: AddTaskScreen.kt (Обновленная версия)
+
+}
+
+
+// --- ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ (БЕЗ ИЗМЕНЕНИЙ) ---
 
 @Composable
 fun WeeklyRepeatDetails(
     selectedDays: Set<Int>, // 1 (Пн) - 7 (Вс)
     onDaySelected: (Int) -> Unit,
 ) {
-    // Используем Map для сопоставления номера дня (1-7) и строкового ресурса
     val dayResources = mapOf(
         1 to R.string.day_short_mon,
         2 to R.string.day_short_tue,
@@ -379,7 +469,6 @@ fun WeeklyRepeatDetails(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            // Используем локализованный текст
             stringResource(R.string.label_repeat_days),
             style = MaterialTheme.typography.labelLarge
         )
@@ -389,10 +478,10 @@ fun WeeklyRepeatDetails(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            (1..7).forEach { dayNumber -> // Итерируемся по номерам дней от 1 до 7
+            (1..7).forEach { dayNumber ->
                 val isSelected = selectedDays.contains(dayNumber)
                 val dayNameResId = dayResources[dayNumber]
-                    ?: R.string.day_short_mon // Fallback, хотя не должен случиться
+                    ?: R.string.day_short_mon
 
                 Button(
                     onClick = { onDaySelected(dayNumber) },
@@ -414,8 +503,6 @@ fun WeeklyRepeatDetails(
 }
 
 
-// Файл: AddTaskScreen.kt
-
 @Composable
 fun MonthlyRepeatDetails(
     selectedDay: Int?,
@@ -423,7 +510,6 @@ fun MonthlyRepeatDetails(
 ) {
     var textValue by remember { mutableStateOf(selectedDay?.toString() ?: "") }
 
-    // Эффект для синхронизации локального текста с внешним состоянием (при смене режима)
     LaunchedEffect(selectedDay) {
         if (selectedDay != textValue.toIntOrNull()) {
             textValue = selectedDay?.toString() ?: ""
@@ -433,23 +519,18 @@ fun MonthlyRepeatDetails(
     OutlinedTextField(
         value = textValue,
         onValueChange = { newValue ->
-            // 1. Фильтруем, оставляя только цифры
             val filteredValue = newValue.filter { it.isDigit() }
-
-            // 2. Преобразуем в число и проверяем ограничения (1-31)
             val dayOfMonth = filteredValue.toIntOrNull()
 
-            // 3. Обновляем локальный текст
             textValue = filteredValue
 
-            // 4. Обновляем внешнее состояние, только если число в пределах 1-31
             if (dayOfMonth != null && dayOfMonth in 1..31) {
                 onDaySelected(dayOfMonth)
             } else if (dayOfMonth == null && filteredValue.isEmpty()) {
-                // Если поле очищено
                 onDaySelected(null)
             } else if (dayOfMonth != null && dayOfMonth > 31) {
-                // Если введено число > 31, сбрасываем состояние
+                // Если введено число > 31, то оно невалидно. Сбрасываем внешний стейт.
+                // Внутренний стейт (textValue) остается как есть, чтобы пользователь мог отредактировать.
                 onDaySelected(null)
             }
         },

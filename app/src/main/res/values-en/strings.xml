@@ -46,7 +46,7 @@
     <string name="label_reward">Reward XP</string>
     <string name="button_save">Save</string>
     <string name="button_add_task">Add task</string>
-
+    <string name="button_delete_task">Delete</string>
     <string name="repeat_mode_none">None</string>
     <string name="repeat_mode_daily">Daily</string>
     <string name="repeat_mode_weekly">Weekly</string>
@@ -90,5 +90,11 @@
     <string name="value_hour">%d hour</string>
 
     <string name="value_status">ACTIVE</string>
+
+
+    <string name="delete_task_title">Delete Task</string>
+    <string name="delete_task_message">Are you sure you want to delete this task? This action cannot be undone.</string>
+    <string name="button_delete">Delete</string>
+    <string name="button_cancel">Cancel</string>
 
 </resources>

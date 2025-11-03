@@ -158,60 +158,37 @@ fun StatRow(
 }
 
 // ---------------------------------------------------------------------
+
 @Composable
 fun mapStatsUiStateToPlayerStats(uiState: StatsUiState): List<PlayerStat> {
-    val context = LocalContext.current
-
-    // Вспомогательная функция для форматирования времени из миллисекунд в "Ч Ч МИН"
-    fun formatTime(ms: Long): String {
-        // Предполагая, что 0L означает "нет данных"
-        if (ms == 0L) return context.getString(R.string.placeholder_no_data)
-        val hours = TimeUnit.MILLISECONDS.toHours(ms)
-        val minutes = TimeUnit.MILLISECONDS.toMinutes(ms) % 60
-        return "$hours Ч $minutes МИН"
-    }
-
-    // ⭐️ НОВАЯ ФУНКЦИЯ: Форматирование Long timestamp в дату
-    fun formatLastVisit(timestampMs: Long): String {
-        if (timestampMs == 0L) return context.getString(R.string.placeholder_no_data)
-        // Формат даты и времени, например, "15.03.2024 14:30"
-        val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-        return formatter.format(Date(timestampMs))
-    }
-
-    // Вспомогательная функция для форматирования записи XP
-    fun formatRecordXp(xp: Int?): String {
-        return if (xp == null) "0 XP" else "$xp"
-    }
-
     return listOf(
         PlayerStat(
             title = stringResource(R.string.stat_tasks_completed),
-            value = uiState.totalTasksCompleted.toString()
+            value = uiState.safeTotalTasksCompleted.toString()
         ),
         PlayerStat(
             title = stringResource(R.string.stat_total_xp_earned),
-            value = "${uiState.totalXpEarned}"
+            value = "${uiState.safeTotalXpEarned}"
         ),
         PlayerStat(
             title = stringResource(R.string.stat_xp_today),
-            value = "${uiState.xpToday}"
+            value = "${uiState.safeXpToday}"
         ),
         PlayerStat(
             title = stringResource(R.string.stat_last_visit),
-            value = TimeUtils.formatLastVisit(uiState.lastVisit)
+            value = TimeUtils.formatLastVisit(uiState.safeLastVisit)
         ),
         PlayerStat(
             title = stringResource(R.string.stat_time_in_game),
-            value = TimeUtils.formatTime(uiState.timeInGameMs)
+            value = TimeUtils.formatTime(uiState.safeTimeInGameMs)
         ),
         PlayerStat(
             title = stringResource(R.string.stat_login_streak),
-            value = "${uiState.currentStreak}"
+            value = "${uiState.safeCurrentStreak}"
         ),
         PlayerStat(
             title = stringResource(R.string.stat_record_day),
-            value = formatRecordXp(uiState.recordXpDay)
+            value = "${uiState.safeRecordXpDay}"
         ),
         PlayerStat(
             title = stringResource(R.string.stat_status),

@@ -1,31 +1,29 @@
 package app.expgessia.domain.repository
 
+import app.expgessia.data.entity.TaskInstanceEntity
 import app.expgessia.domain.model.DailyStats
 import kotlinx.coroutines.flow.Flow
 
-interface DailyStatsRepository {
-
-    fun getAllDailyStats(): Flow<List<DailyStats>>
-
-    suspend fun getStatsByDate(date: Long): DailyStats?
-
-    suspend fun insertOrUpdateStats(stats: DailyStats)
-
-    fun getRecordXpDay(): Flow<Int?>
-
-    /**
-     * Важная функция для учета времени в приложении и статуса входа.
-     */
-    suspend fun recordUserLogin(currentTimestamp: Long, timeInAppMs: Long)
-
-    fun getCurrentStreak(): Flow<Int>
 
 
-    fun getTotalXpEarned(): Flow<Int>
+    interface DailyStatsRepository {
+        // 💡 ОБНОВЛЕННЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С ИНСТАНСАМИ
+        fun getTotalTasksCompleted(): Flow<Int>
+        fun getTotalXpEarned(): Flow<Int>
+        fun getRecordXpDay(): Flow<Int>
+        fun getCurrentStreak(): Flow<Int>
+        fun getTodayXp(): Flow<Int>
+        fun getTimeInApp(): Flow<Long>
 
-    fun getTotalTasksCompleted(): Flow<Int>
+        // 💡 НОВЫЕ МЕТОДЫ ДЛЯ ИНСТАНСОВ
+        suspend fun updateStatsFromTaskInstances()
+        fun getXpByCharacteristic(characteristicId: Int): Flow<Int>
+        suspend fun updateStatsFromTaskCompletionIncrement(taskInstance: TaskInstanceEntity)
 
-    fun getTodayXp(): Flow<Int>
+        suspend fun recordUserLogin(timestamp: Long, timeInAppMs: Long)
 
-    fun getTimeInApp(): Flow<Long?>
-}
+        suspend fun refreshStats()
+
+    }
+
+

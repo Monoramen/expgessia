@@ -14,14 +14,14 @@ data class DailyStatsEntity(
     val date: Long,
 
     @ColumnInfo(name = "total_xp_earned")
-    val totalXpEarned: Int,
+    var totalXpEarned: Int,
 
     // Добавлено: Время в игре (игровое время, не общее время работы приложения)
     @ColumnInfo(name = "time_in_app_ms")
-    val timeInAppMs: Long = 0,
+    var timeInAppMs: Long = 0,
 
     // Добавлено: Количество выполненных задач
     @ColumnInfo(name = "tasks_completed_count")
-    val tasksCompletedCount: Int = 0
+    var tasksCompletedCount: Int = 0
 
 )

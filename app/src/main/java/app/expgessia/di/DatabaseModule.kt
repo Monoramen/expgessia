@@ -4,8 +4,8 @@ import android.content.Context
 import app.expgessia.data.AppDatabase
 import app.expgessia.data.dao.CharacteristicDao
 import app.expgessia.data.dao.DailyStatsDao
-import app.expgessia.data.dao.TaskCompletionDao
 import app.expgessia.data.dao.TaskDao
+import app.expgessia.data.dao.TaskInstanceDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,13 +37,13 @@ object DatabaseModule {
     }
 
     @Provides
-    fun provideTaskCompletionDao(appDatabase: AppDatabase): TaskCompletionDao {
-        return appDatabase.taskCompletionDao()
+    fun provideDailyStatsDao(appDatabase: AppDatabase): DailyStatsDao {
+        return appDatabase.dailyStatsDao()
     }
 
     @Provides
-    fun provideDailyStatsDao(appDatabase: AppDatabase): DailyStatsDao {
-        return appDatabase.dailyStatsDao()
+    fun provideTaskInstanceDao(appDatabase: AppDatabase): TaskInstanceDao {
+        return appDatabase.taskInstanceDao()
     }
 
 }

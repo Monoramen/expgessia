@@ -11,8 +11,6 @@ data class Task(
     val repeatMode: RepeatMode = RepeatMode.NONE,
     val repeatDetails: String? = null,
     val xpReward: Int,
-    val isCompleted: Boolean = false,
-    val scheduledFor: Long? = null,
 )
 
 enum class RepeatMode(@StringRes val stringResId: Int) {

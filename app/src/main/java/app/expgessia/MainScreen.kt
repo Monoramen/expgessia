@@ -321,10 +321,11 @@ fun MainScreen(
                 )
             }
 
+// В MainScreen в NavHost
             composable(
                 route = DAILY_TASKS_ROUTE,
                 arguments = listOf(navArgument("date") {
-                    type = NavType.StringType // Дата передается как строка
+                    type = NavType.StringType
                 })
             ) { backStackEntry ->
                 val dateString = backStackEntry.arguments?.getString("date")
@@ -335,6 +336,10 @@ fun MainScreen(
                     onSelectedDateChange = { newDate ->
                         topBarDate = newDate
                     },
+                    // 💡 ПЕРЕДАЕМ ФУНКЦИЮ НАВИГАЦИИ НА РЕДАКТИРОВАНИЕ
+                    onEditTaskClicked = { taskId ->
+                        navigateToTask(taskId)
+                    }
                 )
             }
 

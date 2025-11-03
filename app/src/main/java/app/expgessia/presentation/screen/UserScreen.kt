@@ -1,6 +1,5 @@
 package app.expgessia.presentation.screen
 
-import android.content.res.Resources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,56 +21,31 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.expgessia.R
-import app.expgessia.domain.model.TaskUiModel
 import app.expgessia.presentation.viewmodel.TaskViewModel
 import app.expgessia.presentation.viewmodel.UserViewModel
 import app.expgessia.ui.components.RetroTaskCategoryCompact
 import app.expgessia.ui.components.TaskItem
 import app.expgessia.ui.components.UserCard
-
-// ⚠️ Локальная модель для статических демо-данных (оставляем для подсчета count)
-private data class DemoTaskModel(
-    val id: Long, // Требуется для onCheckClicked
-    val title: String,
-    val description: String,
-    val xpReward: Int,
-    var isCompleted: Boolean,
-    val category: String,
-    val characteristicIconResName: String? = null // Требуется для TaskUiModel
-) {
-    // Метод для преобразования локальной модели в UI-модель, ожидаемую TaskItem
-    fun toUiModel() = TaskUiModel(
-        id = id,
-        title = title,
-        description = description,
-        xpReward = xpReward,
-        isCompleted = isCompleted,
-        characteristicIconResName = characteristicIconResName
-            ?: "strength" // Дефолтная иконка для демо
-    )
-}
+import java.time.LocalDate
 
 @Composable
 fun UserScreen(
     modifier: Modifier = Modifier,
     userViewModel: UserViewModel = hiltViewModel(),
     taskViewModel: TaskViewModel = hiltViewModel()
-
 ) {
     val user by userViewModel.user.collectAsState(initial = null)
     val isLoading by userViewModel.isLoading.collectAsState()
 
-    // 💡 Локальные состояния для управления категориями задач
-    val todayTasks by taskViewModel.todayTasks.collectAsState(initial = emptyList())
-    val completedTasks by taskViewModel.completedTasks.collectAsState(initial = emptyList())
-    val tomorrowTasks by taskViewModel.tomorrowTasks.collectAsState(initial = emptyList())
+    // 💡 ИСПРАВЛЯЕМ: Используем все три Flow
+    val todayTasks by taskViewModel.todayTasksFlow.collectAsState(initial = emptyList())
+    val tomorrowTasks by taskViewModel.tomorrowTasksFlow.collectAsState(initial = emptyList())
+    val completedTasks by taskViewModel.completedTasksFlow.collectAsState(initial = emptyList())
 
-    // 💡 Состояния для управления видимостью (раскрытием) категорий
-    var showToday by remember { mutableStateOf(true) } // По умолчанию показываем сегодня
+    // Состояния для управления видимостью
+    var showToday by remember { mutableStateOf(true) }
     var showTomorrow by remember { mutableStateOf(false) }
     var showCompleted by remember { mutableStateOf(false) }
-
-
 
     LazyColumn(
         modifier = modifier,
@@ -101,72 +75,82 @@ fun UserScreen(
             }
         }
 
-
-// --- TODAY SECTION ---
+        // --- TODAY SECTION ---
         item {
             RetroTaskCategoryCompact(
                 title = stringResource(R.string.label_today),
-                count = todayTasks.size, // ✅ Реальное количество
+                count = todayTasks.size,
                 isExpanded = showToday,
                 onToggle = { showToday = !showToday }
             )
         }
-        // ✅ Условно отображаем список задач на сегодня
+
         if (showToday) {
-            items(todayTasks, key = { it.id }) { task ->
+            items(todayTasks, key = { "today_${it.id}" }) { task -> // 💡 Уникальный ключ
                 TaskItem(
                     task = task,
-                    // ✅ Вызываем функцию ViewModel для выполнения задачи
-                    onTaskCheckClicked = { taskViewModel.onTaskCheckClicked(task.id) },
-                    onTaskEditClicked = { /* TODO: Добавить логику навигации для редактирования */ },
+                    onTaskCheckClicked = { taskId ->
+                        taskViewModel.onTaskCheckClickedForDate(taskId, LocalDate.now()) {
+                            taskViewModel.forceRefresh()
+                        }
+                    },
+                    onTaskEditClicked = { taskId ->
+                        // TODO: Добавить навигацию для редактирования
+                    },
                 )
             }
         }
 
-// --- TOMORROW SECTION (Запланированные задачи) ---
+        // --- TOMORROW SECTION ---
         item {
             RetroTaskCategoryCompact(
                 title = stringResource(R.string.label_tomorrow),
-                count = tomorrowTasks.size, // ✅ Используем реальное количество
+                count = tomorrowTasks.size,
                 isExpanded = showTomorrow,
                 onToggle = { showTomorrow = !showTomorrow }
             )
         }
-        // ✅ Условно отображаем список задач на завтра
+
         if (showTomorrow) {
-            items(tomorrowTasks, key = { it.id }) { task ->
+            items(tomorrowTasks, key = { "tomorrow_${it.id}" }) { task -> // 💡 Уникальный ключ
                 TaskItem(
                     task = task,
-                    // ✅ Вызываем функцию ViewModel для выполнения задачи
-                    onTaskCheckClicked = { taskViewModel.onTaskCheckClicked(task.id) },
-                    onTaskEditClicked = { /* TODO: Добавить логику навигации для редактирования */ },
+                    onTaskCheckClicked = { taskId ->
+                        val tomorrow = LocalDate.now().plusDays(1)
+                        taskViewModel.onTaskCheckClickedForDate(taskId, tomorrow) {
+                            taskViewModel.forceRefresh()
+                        }
+                    },
+                    onTaskEditClicked = { taskId ->
+                        // TODO: Добавить навигацию для редактирования
+                    },
                 )
             }
         }
-// --- END TOMORROW SECTION ---
 
-
-// --- COMPLETED SECTION (Завершенные задачи) ---
+        // --- COMPLETED SECTION ---
         item {
             RetroTaskCategoryCompact(
                 title = stringResource(R.string.label_completed),
-                count = completedTasks.size, // ✅ Используем реальное количество
+                count = completedTasks.size,
                 isExpanded = showCompleted,
                 onToggle = { showCompleted = !showCompleted }
             )
         }
-        // ✅ Условно отображаем список завершенных задач
+
         if (showCompleted) {
-            items(completedTasks, key = { it.id }) { task ->
+            items(completedTasks, key = { "completed_${it.id}" }) { task -> // 💡 Уникальный ключ
                 TaskItem(
                     task = task,
-                    // ⚠️ Для завершенных задач, обычно, действие "чек" означает "отменить завершение"
-                    // или "скрыть". Оставляем заглушку, так как логика uncheck отсутствует в TaskViewModel
-                    onTaskCheckClicked = { /* TODO: Логика uncheck (отменить завершение) */ },
-                    onTaskEditClicked = { /* TODO: Логика просмотра/редактирования */ },
+                    onTaskCheckClicked = { taskId ->
+                        taskViewModel.onTaskCheckClickedForDate(taskId, LocalDate.now()) {
+                            taskViewModel.forceRefresh()
+                        }
+                    },
+                    onTaskEditClicked = { /* TODO */ },
                 )
             }
         }
-// --- END COMPLETED SECTION ---
+
     }
 }

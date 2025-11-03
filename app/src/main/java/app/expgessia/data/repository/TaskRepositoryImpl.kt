@@ -1,8 +1,9 @@
 package app.expgessia.data.repository
 
+
+import android.util.Log
 import app.expgessia.data.dao.CharacteristicDao
 import app.expgessia.data.dao.TaskDao
-import app.expgessia.data.entity.TaskEntity
 import app.expgessia.domain.model.Task
 import app.expgessia.domain.repository.TaskRepository
 import app.expgessia.utils.TimeUtils
@@ -17,10 +18,7 @@ class TaskRepositoryImpl @Inject constructor(
     private val taskDao: TaskDao,
     private val characteristicsDao: CharacteristicDao,
 ) : TaskRepository {
-    private val startOfTomorrow: Long
-        get() = TimeUtils.calculateStartOfDay(
-            System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1)
-        )
+
     override fun getAllTasks(): Flow<List<Task>> {
         return taskDao.getAllTasks().map { entities ->
             entities.map { it.toDomain() }
@@ -32,17 +30,14 @@ class TaskRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addTask(task: Task) {
-        // Suspend: Room автоматически выполнит на Dispatchers.IO
         taskDao.insertTask(task.toEntity())
     }
 
     override suspend fun updateTask(task: Task) {
-        // Suspend: Room автоматически выполнит на Dispatchers.IO
         taskDao.updateTask(task.toEntity())
     }
 
     override suspend fun deleteTask(task: Task) {
-        // Suspend: Room автоматически выполнит на Dispatchers.IO
         taskDao.deleteTask(task.toEntity())
     }
 
@@ -50,45 +45,25 @@ class TaskRepositoryImpl @Inject constructor(
         return characteristicsDao.getIconResNameById(id)
     }
 
-    override fun getTodayActiveTasks(): Flow<List<Task>> {
-        // ✅ МАППИНГ: TaskEntity -> Task
-        return taskDao.getTodayActiveTasks(startOfTomorrow).map { entities ->
-            entities.map { it.toDomain() }
-        }
-    }
-
-    /**
-     * Возвращает все завершенные задачи.
-     */
-    override fun getCompletedTasksStream(): Flow<List<Task>> {
-        // ✅ МАППИНГ: TaskEntity -> Task
-        return taskDao.getCompletedTasks().map { entities ->
-            entities.map { it.toDomain() }
-        }
-    }
-
-    /**
-     * Возвращает задачи, запланированные на начало завтрашнего дня.
-     */
-    override fun getTomorrowScheduledTasks(): Flow<List<Task>> {
-        // ✅ МАППИНГ: TaskEntity -> Task
-        return taskDao.getTomorrowScheduledTasks(startOfTomorrow).map { entities ->
-            entities.map { it.toDomain() }
-        }
-    }
-
-
-    override suspend fun resetOverdueRepeatingTasks() {
-        taskDao.resetOverdueRepeatingTasks(System.currentTimeMillis())
-    }
-
-
+    // Функции для планировщика
     override fun getRepeatingTasks(): Flow<List<Task>> {
-        return taskDao.getAllRepeatingTasks().map { entities ->
-            entities.map { it.toDomain() }
-        }
+        return taskDao.getAllRepeatingTasks().map { entities -> entities.map { it.toDomain() } }
+    }
+
+    override fun getDailyTasks(): Flow<List<Task>> {
+        return taskDao.getDailyTasks().map { entities -> entities.map { it.toDomain() } }
+    }
+
+    override fun getWeeklyTasks(): Flow<List<Task>> {
+        return taskDao.getWeeklyTasks().map { entities -> entities.map { it.toDomain() } }
+    }
+
+    override fun getMonthlyTasks(): Flow<List<Task>> {
+        return taskDao.getMonthlyTasks().map { entities -> entities.map { it.toDomain() } }
+    }
+    override suspend fun getAllTasksSync(): List<Task> {
+        return taskDao.getAllTasksSync().map { it.toDomain() }
     }
 
 
 }
-

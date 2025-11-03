@@ -30,49 +30,76 @@ CREATE TABLE IF NOT EXISTS tasks (
     repeat_mode TEXT NOT NULL DEFAULT 'NONE',
     repeat_details TEXT,
     xp_reward INTEGER NOT NULL DEFAULT 0,
-    is_completed INTEGER NOT NULL DEFAULT 0,
-    scheduled_for INTEGER,
     FOREIGN KEY (characteristic_id) REFERENCES characteristics(id)
 );
+
+-- 💡 НОВАЯ ТАБЛИЦА: task_instances
+CREATE TABLE IF NOT EXISTS task_instances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL,
+    scheduled_for INTEGER, -- Начало дня, на который запланирована задача
+    is_completed INTEGER NOT NULL DEFAULT 0, -- 0 (false) или 1 (true)
+    completed_at INTEGER,
+    xp_earned INTEGER NOT NULL DEFAULT 0,
+    is_undone INTEGER NOT NULL DEFAULT 0, -- Флаг отмены выполнения (для отмены прогресса)
+
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+    UNIQUE(task_id, scheduled_for) -- Гарантирует только один экземпляр задачи на один день
+);
+
+CREATE TABLE IF NOT EXISTS daily_stats (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date INTEGER NOT NULL UNIQUE,
+    xp_earned_today INTEGER NOT NULL DEFAULT 0
+);
+
+
+CREATE TABLE IF NOT EXISTS task_completions (
+    id INTEGER PRIMARY KEY,
+    task_id INTEGER NOT NULL,
+    completion_date INTEGER NOT NULL,
+    xp_earned INTEGER NOT NULL,
+    characteristic_id INTEGER NOT NULL,
+    is_repeating INTEGER NOT NULL,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+    FOREIGN KEY (characteristic_id) REFERENCES characteristics(id)
+);
+
 
 INSERT OR IGNORE INTO characteristics (name, description, icon_res_name) VALUES
 ('Strength', 'Care of body and will. Walking, cleaning, sports.', 'strength'),
 ('Perception', 'Awareness and observation. Meditation, attention to detail.', 'perception'),
-('Endurance', 'Energy and resilience. Sleep, breaks, routine.', 'endurance'),
-('Charisma', 'Connection with people. Conversation, compliments, smile.', 'charisma'),
-('Intelligence', 'Curiosity and thinking. Reading, questioning, learning.', 'intelligence'),
-('Agility', 'Flexibility and adaptability. New routes, changes.', 'agility'),
-('Luck', 'Spontaneity and openness. Coincidence, game, surprise.', 'luck');
+('Endurance', 'Health and resilience. Sleep, healthy food, habits.', 'endurance'),
+('Charisma', 'Social and communication skills. Meetings, conversations, public speaking.', 'charisma'),
+('Intelligence', 'Learning and analytical thinking. Reading, puzzles, new skills.', 'intelligence'),
+('Agility', 'Movement and coordination. Dexterity, fast actions, reaction time.', 'agility'),
+('Luck', 'Random events and risk management. Only luck.', 'luck');
 
-
-INSERT OR IGNORE INTO users (id, name, experience, level, money, strength, perception,
-endurance, charisma, intelligence, agility, luck, last_login, photo_uri)
+INSERT OR IGNORE INTO users (id, name, experience, level, money, strength, perception, endurance, charisma, intelligence, agility, luck, last_login, photo_uri)
 VALUES ( 1, 'Player', 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, NULL, NULL);
 
-INSERT OR IGNORE INTO tasks (title, description, characteristic_id, repeat_mode, repeat_details, xp_reward, is_completed, scheduled_for)
+INSERT OR IGNORE INTO tasks (title, description, characteristic_id, repeat_mode, repeat_details, xp_reward)
 VALUES
 -- 1. Strength (Сила): ID=1
-('Утренняя зарядка', 'Сделать 10 отжиманий, 15 приседаний или планку 30 секунд.', 1, 'DAILY', NULL, 15, 0, NULL),
+('Утренняя зарядка', 'Сделать 10 отжиманий, 15 приседаний или планку 30 секунд.', 1, 'DAILY', NULL, 15),
 
 -- 2. Perception (Восприятие): ID=2
-('Микрозаметки', 'Записать 5 мелких деталей своего окружения, которые обычно не замечаешь.', 2, 'DAILY', NULL, 10, 0, NULL),
+('Микрозаметки', 'Записать 5 мелких деталей своего окружения, которые обычно не замечаешь.', 2, 'DAILY', NULL, 10),
 
-('Беззвучное наблюдение', 'Провести 5 минут, фокусируясь только на звуках.', 2, 'DAILY', NULL, 10, 0, NULL),
+('Беззвучное наблюдение', 'Провести 5 минут, фокусируясь только на звуках.', 2, 'DAILY', NULL, 10),
 
 
 -- 3. Endurance (Выносливость): ID=3
-('Режим сна', 'Лечь спать до 23:00 и проснуться по будильнику.', 3, 'DAILY', NULL, 20, 0, NULL),
+('Режим сна', 'Лечь спать до 23:00 и проснуться по будильнику.', 3, 'DAILY', NULL, 20),
 
 
 -- 4. Charisma (Харизма): ID=4
-('Активное слушание', 'Провести один разговор, не перебивая собеседника и задавая уточняющие вопросы.', 4, 'NONE', NULL, 15, 0, NULL),
+('Активное слушание', 'Провести один разговор, не перебивая собеседника и задавая уточняющие вопросы.', 4, 'DAILY', NULL, 15),
+
 
 -- 5. Intelligence (Интеллект): ID=5
-('Обучение (30м)', 'Изучить новую тему/главу книги в течение 30 минут.', 5, 'DAILY', NULL, 20, 0, NULL),
+('10 страниц книги', 'Прочитать 10 страниц книги или статьи на новую тему.', 5, 'DAILY', NULL, 15),
+
 
 -- 6. Agility (Ловкость): ID=6
-('Новая еда', 'Попробовать блюдо, которое никогда раньше не ел.', 6, 'NONE', NULL, 10, 0, NULL),
-('Другой маршрут', 'Намеренно изменить маршрут на работу/домой.', 6, 'NONE', NULL, 10, 0, NULL),
-
--- 7. Luck (Удача): ID=7
-('Начать отложенное', 'Сделать первый шаг в деле, которое долго откладывал (15 минут).', 7, 'NONE', NULL, 15, 0, NULL);
+('Упражнение для рук', 'Сделать упражнение для развития мелкой моторики (например, жонглирование или сложный узел).', 6, 'DAILY', NULL, 10);

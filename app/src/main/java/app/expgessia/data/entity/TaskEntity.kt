@@ -3,6 +3,7 @@ package app.expgessia.data.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import app.expgessia.data.converter.TaskConverters // Импортируем наш конвертер
@@ -15,6 +16,7 @@ import app.expgessia.data.converter.TaskConverters // Импортируем н�
         childColumns = ["characteristic_id"],
         onDelete = ForeignKey.CASCADE
     )]
+    , indices = [Index("characteristic_id")] // Добавьте это
 )
 
 @TypeConverters(TaskConverters::class)
@@ -38,8 +40,5 @@ data class TaskEntity(
 
     @ColumnInfo(name = "xp_reward")
     val xpReward: Int,
-    @ColumnInfo(name = "is_completed")
-    val isCompleted: Boolean = false,
-    @ColumnInfo(name = "scheduled_for")
-    val scheduledFor: Long? = null
+
 )
