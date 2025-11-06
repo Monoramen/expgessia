@@ -37,6 +37,4 @@ data class TaskInstanceEntity(
 
     @ColumnInfo(name = "xp_earned")
     val xpEarned: Int = 0,
-    @ColumnInfo(name = "is_undone")
-    val isUndone: Boolean = false,
 )

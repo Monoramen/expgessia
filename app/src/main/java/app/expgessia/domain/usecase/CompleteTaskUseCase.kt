@@ -6,14 +6,10 @@ import toEntity
 import javax.inject.Inject
 
 
-class CompleteTaskUseCase  @Inject constructor(
-    private val taskCompletionRepository: TaskCompletionRepository,
-    ){
-    /**
-     * Запускает полную транзакцию по выполнению задачи.
-     * Репозиторий выполнения сам найдет шаблон задачи и экземпляр выполнения.
-     */
-    suspend operator fun invoke(taskId: Long, completionTimestamp: Long) {
-        taskCompletionRepository.completeTask(taskId, completionTimestamp)
+class CompleteTaskUseCase @Inject constructor(
+    private val taskCompletionRepository: TaskCompletionRepository
+) {
+    suspend operator fun invoke(taskId: Long, completionTime: Long = System.currentTimeMillis()) {
+        taskCompletionRepository.completeTask(taskId, completionTime)
     }
 }

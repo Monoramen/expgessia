@@ -12,7 +12,11 @@ import androidx.compose.ui.graphics.Color
 import java.time.DayOfWeek
 import java.time.LocalDate
 
-data class CalendarSimpleTask(val id: Long, val name: String)
+data class CalendarSimpleTask(
+    val id: Long,
+    val name: String,
+    val isCompleted: Boolean = false // 🔥 ДОБАВЛЕНО: статус выполнения
+)
 
 @Composable
 fun CalendarMonthGrid(

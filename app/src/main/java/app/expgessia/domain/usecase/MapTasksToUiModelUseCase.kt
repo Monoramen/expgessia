@@ -29,7 +29,8 @@ class MapTasksToUiModelUseCase @Inject constructor(
                 description = task.description,
                 xpReward = task.xpReward,
                 isCompleted = if (date.isAfter(LocalDate.now())) false else isCompleted,
-                characteristicIconResName = characteristic?.iconResName
+                characteristicIconResName = characteristic?.iconResName,
+                date = date
             )
         }
     }

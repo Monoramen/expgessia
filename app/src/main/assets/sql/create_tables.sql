@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS task_instances (
     is_completed INTEGER NOT NULL DEFAULT 0, -- 0 (false) или 1 (true)
     completed_at INTEGER,
     xp_earned INTEGER NOT NULL DEFAULT 0,
-    is_undone INTEGER NOT NULL DEFAULT 0, -- Флаг отмены выполнения (для отмены прогресса)
+
 
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
     UNIQUE(task_id, scheduled_for) -- Гарантирует только один экземпляр задачи на один день

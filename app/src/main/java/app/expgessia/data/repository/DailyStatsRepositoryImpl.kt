@@ -28,16 +28,14 @@ class DailyStatsRepositoryImpl @Inject constructor(
     override fun getTotalTasksCompleted(): Flow<Int> {
         return _refreshTrigger.flatMapLatest {
             taskInstanceDao.getCompletedTaskInstances()
-                .map { instances ->
-                    instances.count { it.isCompleted && !it.isUndone }
-                }
+                .map { instances -> instances.count { it.isCompleted } }
         }
     }
     override fun getTotalXpEarned(): Flow<Int> {
         return taskInstanceDao.getCompletedTaskInstances()
             .map { instances ->
                 instances
-                    .filter { it.isCompleted && !it.isUndone }
+                    .filter { it.isCompleted  }
                     .sumOf { it.xpEarned }
             }
     }
@@ -62,7 +60,7 @@ class DailyStatsRepositoryImpl @Inject constructor(
             .map { instances ->
                 instances
                     .filter {
-                        it.isCompleted && !it.isUndone &&
+                        it.isCompleted &&
                                 it.completedAt != null &&
                                 it.completedAt >= todayStart &&
                                 it.completedAt < todayStart + TimeUtils.DAY_IN_MILLIS
@@ -118,7 +116,7 @@ class DailyStatsRepositoryImpl @Inject constructor(
             timeInAppMs = 0
         )
 
-        if (taskInstance.isCompleted && !taskInstance.isUndone) {
+        if (taskInstance.isCompleted) {
             dailyStats.totalXpEarned += taskInstance.xpEarned
             dailyStats.tasksCompletedCount += 1
         } else {
@@ -130,6 +128,7 @@ class DailyStatsRepositoryImpl @Inject constructor(
         dailyStats.tasksCompletedCount = maxOf(0, dailyStats.tasksCompletedCount)
 
         dailyStatsDao.insertOrUpdate(dailyStats)
+        _refreshTrigger.value++
     }
 
     // 💡 УЛУЧШЕННЫЙ МЕТОД ДЛЯ РАСЧЕТА СТРИКА
@@ -138,7 +137,7 @@ class DailyStatsRepositoryImpl @Inject constructor(
 
         // Получаем уникальные даты завершения задач
         val completedDates = instances
-            .filter { it.isCompleted && it.completedAt != null && !it.isUndone }
+            .filter { it.isCompleted && it.completedAt != null  }
             .map { TimeUtils.millisToLocalDate(it.completedAt!!) }
             .distinct()
             .sortedDescending()

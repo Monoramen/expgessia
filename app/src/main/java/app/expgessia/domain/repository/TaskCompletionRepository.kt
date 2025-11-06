@@ -15,6 +15,8 @@ interface TaskCompletionRepository {
     fun getTodayActiveTaskDetailsStream(startOfDay: Long): Flow<List<TaskWithInstance>>
     fun getTomorrowScheduledTaskDetailsStream(startOfTomorrow: Long): Flow<List<TaskWithInstance>>
     fun getCompletedTaskInstancesStream(): Flow<List<TaskInstance>> // Для истории
+    fun getCompletedTasksWithDetailsStream(): Flow<List<TaskWithInstance>>
+
 
     // Функции для статистики
     fun getTotalCompletedTasksCount(): Flow<Int>
@@ -30,4 +32,10 @@ interface TaskCompletionRepository {
 
 
     suspend fun ensureTaskInstancesForDate(date: LocalDate)
+
+
+    // В TaskCompletionRepository.kt добавьте:
+    suspend fun createTaskInstancesForTask(taskId: Long)
+
+    fun getCompletedTasksInDateRange(startDate: LocalDate, endDate: LocalDate): Flow<List<TaskInstance>>
 }

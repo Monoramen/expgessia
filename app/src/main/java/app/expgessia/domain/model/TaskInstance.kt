@@ -9,6 +9,5 @@ data class TaskInstance(
     val isCompleted: Boolean = false,
     val completedAt: Long? = null,
     val xpEarned: Int = 0,
-    val isUndone: Boolean = false
 )
 

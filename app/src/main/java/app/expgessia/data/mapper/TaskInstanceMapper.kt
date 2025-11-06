@@ -10,7 +10,6 @@ fun TaskInstanceEntity.toDomain(): TaskInstance = TaskInstance(
     isCompleted = this.isCompleted,
     completedAt = this.completedAt,
     xpEarned = this.xpEarned,
-    isUndone = this.isUndone
 )
 
 fun TaskInstance.toEntity(): TaskInstanceEntity = TaskInstanceEntity(
@@ -20,5 +19,5 @@ fun TaskInstance.toEntity(): TaskInstanceEntity = TaskInstanceEntity(
     isCompleted = this.isCompleted,
     completedAt = this.completedAt,
     xpEarned = this.xpEarned,
-    isUndone = this.isUndone
+
 )

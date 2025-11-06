@@ -74,21 +74,33 @@ fun TaskDayCell(
                 Text(
                     text = task.name,
                     style = SmallTypography.bodySmall,
-                    color = taskTextColor,
+                    color = if (task.isCompleted) {
+                        // 🔥 ИЗМЕНЕНО: Для выполненных задач другой цвет
+                        Color.Green.copy(alpha = if (isCurrentMonth) 0.7f else 0.4f)
+                    } else {
+                        taskTextColor
+                    },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF6B6C69).copy(alpha = if (isCurrentMonth) 1f else 0.5f))
+                        .background(
+                            if (task.isCompleted) {
+                                // 🔥 ИЗМЕНЕНО: Для выполненных задач другой фон
+                                Color(0xFF4CAF50).copy(alpha = if (isCurrentMonth) 0.3f else 0.2f)
+                            } else {
+                                Color(0xFF6B6C69).copy(alpha = if (isCurrentMonth) 1f else 0.5f)
+                            }
+                        )
                         .padding(horizontal = 2.dp, vertical = 1.dp)
                 )
                 Spacer(modifier = Modifier.height(2.dp))
             }
         }
 
-        if (tasks.size > 7) {
+        if (tasks.size > 10) {
             Text(
-                text = "+${tasks.size - 7} more",
+                text = "+${tasks.size - 10} more",
                 style = SmallTypography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary.copy(alpha = if (isCurrentMonth) 1f else 0.5f),
                 modifier = Modifier.padding(top = 4.dp)

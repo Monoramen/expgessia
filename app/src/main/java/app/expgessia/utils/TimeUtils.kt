@@ -62,7 +62,11 @@ object TimeUtils {
             .toLocalDate()
     }
 
-
+    fun isToday(timestamp: Long): Boolean {
+        val startOfToday = calculateStartOfDay(System.currentTimeMillis())
+        val startOfTargetDay = calculateStartOfDay(timestamp)
+        return startOfToday == startOfTargetDay
+    }
 
     /**
      * Вычисляет Long Timestamp следующего запланированного появления задачи.

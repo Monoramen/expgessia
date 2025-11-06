@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.expgessia.R
 import app.expgessia.domain.model.Characteristic
 import app.expgessia.domain.model.RepeatMode
@@ -62,7 +63,7 @@ fun AddTaskScreen(
     modifier: Modifier = Modifier,
 ) {
     // 1. СОБИРАЕМ СОСТОЯНИЕ: Список характеристик
-    val characteristics by viewModel.characteristicsUiState.collectAsState()
+    val characteristics by viewModel.characteristicsUiState.collectAsStateWithLifecycle()
 
     val isEditMode = taskIdToEdit != null && taskIdToEdit != 0L
     // 2. Локальные состояния формы
@@ -138,10 +139,7 @@ fun AddTaskScreen(
     // Общая доступность кнопки
     val isButtonEnabled = isFormValid && isRepeatDetailsValid
 
-    // Обернем в Scaffold, чтобы иметь структуру экрана (TopBar/BottomBar, если нужны)
     Scaffold(
-        // Предполагаем, что здесь будет TopAppBar с кнопкой "Назад"
-        // topBar = { TaskAppBar(...) }
     ) { paddingValues ->
         Column(
             modifier = modifier

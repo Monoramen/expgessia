@@ -41,13 +41,19 @@ import app.expgessia.domain.model.Task as DomainTask
 
 val defaultBorderColor = Color(0xFFCCD7CC)
 
+// В CalendarTasksGrid.kt - обновите функцию маппинга
 private fun toUITaskMap(
     domainTaskMap: Map<LocalDate, List<DomainTask>>,
+    completedTasksMap: Map<LocalDate, List<Long>> // 🔥 ДОБАВЛЕНО: мапа выполненных задач по датам
 ): Map<LocalDate, List<CalendarSimpleTask>> {
-    return domainTaskMap.mapValues { (_, domainTasks) ->
+    return domainTaskMap.mapValues { (date, domainTasks) ->
+        val completedTaskIds = completedTasksMap[date] ?: emptyList()
         domainTasks.map { domainTask ->
-            // Маппинг: DomainTask -> локальный UI Task
-            CalendarSimpleTask(id = domainTask.id, name = domainTask.title)
+            CalendarSimpleTask(
+                id = domainTask.id,
+                name = domainTask.title,
+                isCompleted = completedTaskIds.contains(domainTask.id) // 🔥 ДОБАВЛЕНО статус
+            )
         }
     }
 }
@@ -66,16 +72,25 @@ fun CalendarTasksGrid(
     // ДАННЫЕ И СОСТОЯНИЯ
     // ==========================================================
 
-    val currentMonthTasks by viewModel.getTasksForMonth(currentMonth).map(::toUITaskMap)
-        .collectAsState(initial = emptyMap())
+    val currentMonthData by viewModel.getTasksWithCompletionForMonth(currentMonth)
+        .collectAsState(initial = emptyMap<LocalDate, List<DomainTask>>() to emptyMap())
+
+    val (currentMonthTasks, currentMonthCompleted) = currentMonthData
 
     val previousMonth = remember(currentMonth) { currentMonth.minusMonths(1) }
-    val previousMonthTasks by viewModel.getTasksForMonth(previousMonth).map(::toUITaskMap)
-        .collectAsState(initial = emptyMap())
+    val previousMonthData by viewModel.getTasksWithCompletionForMonth(previousMonth)
+        .collectAsState(initial = emptyMap<LocalDate, List<DomainTask>>() to emptyMap())
+    val (previousMonthTasks, previousMonthCompleted) = previousMonthData
 
     val nextMonth = remember(currentMonth) { currentMonth.plusMonths(1) }
-    val nextMonthTasks by viewModel.getTasksForMonth(nextMonth).map(::toUITaskMap)
-        .collectAsState(initial = emptyMap())
+    val nextMonthData by viewModel.getTasksWithCompletionForMonth(nextMonth)
+        .collectAsState(initial = emptyMap<LocalDate, List<DomainTask>>() to emptyMap())
+    val (nextMonthTasks, nextMonthCompleted) = nextMonthData
+
+    // 🔥 ОБНОВЛЕНО: Передаем информацию о выполненных задачах
+    val currentMonthTasksUi = toUITaskMap(currentMonthTasks, currentMonthCompleted)
+    val previousMonthTasksUi = toUITaskMap(previousMonthTasks, previousMonthCompleted)
+    val nextMonthTasksUi = toUITaskMap(nextMonthTasks, nextMonthCompleted)
 
 
     // --- Состояния анимации/жестов ---
@@ -177,25 +192,29 @@ fun CalendarTasksGrid(
                 0.dp
             }
 
+            val onDayClickedWithPreparation: (LocalDate) -> Unit = { date ->
+                viewModel.onDayClicked(date) // Теперь это создаст инстансы
+                onDayClicked(date) // Оригинальный колбэк
+            }
 
             CalendarMonthGrid(
                 month = currentMonth,
-                tasksByDate = currentMonthTasks,
+                tasksByDate = currentMonthTasksUi,
                 offset = Modifier.offset(x = totalOffsetDp),
                 dividerColor = dividerColor,
-                onDayClicked = onDayClicked,
+                onDayClicked = onDayClickedWithPreparation,
                 cellHeight = cellHeightDp // <-- передаём сюда
             )
 
             if (totalOffsetPx < 0) {
                 CalendarMonthGrid(
                     month = nextMonth,
-                    tasksByDate = nextMonthTasks,
+                    tasksByDate = nextMonthTasksUi,
                     offset = Modifier.offset(
                         x = (totalOffsetPx + fullWidthPx).roundToInt().div(density).dp
                     ),
                     dividerColor = dividerColor,
-                    onDayClicked = onDayClicked,
+                    onDayClicked = onDayClickedWithPreparation,
                     cellHeight = cellHeightDp
                 )
             }
@@ -203,12 +222,12 @@ fun CalendarTasksGrid(
             if (totalOffsetPx > 0) {
                 CalendarMonthGrid(
                     month = previousMonth,
-                    tasksByDate = previousMonthTasks,
+                    tasksByDate = previousMonthTasksUi,
                     offset = Modifier.offset(
                         x = (totalOffsetPx - fullWidthPx).roundToInt().div(density).dp
                     ),
                     dividerColor = dividerColor,
-                    onDayClicked = onDayClicked,
+                    onDayClicked = onDayClickedWithPreparation,
                     cellHeight = cellHeightDp
                 )
             }
