@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.expgessia.R
 import app.expgessia.presentation.viewmodel.TaskViewModel
 import app.expgessia.presentation.viewmodel.UserViewModel
@@ -43,9 +44,9 @@ fun UserScreen(
         taskViewModel.syncAllTasks()
     }
 
-    val user by userViewModel.user.collectAsState(initial = null)
-    val isLoading by userViewModel.isLoading.collectAsState()
-    val tasksState by taskViewModel.tasksState.collectAsState()
+    val user by userViewModel.user.collectAsStateWithLifecycle(initialValue = null)
+    val isLoading by userViewModel.isLoading.collectAsStateWithLifecycle()
+    val tasksState by taskViewModel.tasksState.collectAsStateWithLifecycle() // 🔥 ИЗМЕНЕНО
 
     // Состояния для управления видимостью
     var showToday by remember { mutableStateOf(true) }
@@ -54,14 +55,13 @@ fun UserScreen(
 
     // 🔥 ОБНОВЛЯЕМ ДАННЫЕ ТОЛЬКО КОГДА СЕКЦИЯ ОТКРЫТА
     LaunchedEffect(showToday, showTomorrow, showCompleted) {
+        // Обновляем данные только при открытии секций, но не при закрытии
         if (showToday || showTomorrow || showCompleted) {
-            // Обновляем данные только при открытых секциях
             taskViewModel.forceRefresh()
             Log.d("UserScreen", "🔄 Refreshing data for open sections")
         }
     }
 
-    // 🔥 ИСПОЛЬЗУЕМ ДАННЫЕ ИЗ STATE ДЛЯ ОТОБРАЖЕНИЯ ВСЕГДА
     val (todayTasks, tomorrowTasks, completedTasks) = when (tasksState) {
         is TaskViewModel.TaskState.Success -> {
             val state = tasksState as TaskViewModel.TaskState.Success
@@ -108,20 +108,18 @@ fun UserScreen(
             )
         }
 
+
         if (showToday) {
             items(todayTasks, key = { "today_${it.id}" }) { task ->
                 TaskItem(
                     task = task,
                     onTaskCheckClicked = { taskId ->
                         taskViewModel.onTaskCheckClickedForDate(taskId, LocalDate.now()) {
-                            // 🔥 ОБНОВЛЯЕМ ПОСЛЕ ИЗМЕНЕНИЯ СТАТУСА
-                            taskViewModel.forceRefresh()
+                            // 🔥 УБИРАЕМ колбэк - обновление автоматическое
                         }
                         Log.d("UserScreen", "✅ Today task $taskId status changed")
                     },
-                    onTaskEditClicked = { taskId ->
-                        // TODO: Навигация для редактирования
-                    },
+                    onTaskEditClicked = { taskId -> /* TODO */ },
                 )
             }
         }
@@ -143,14 +141,11 @@ fun UserScreen(
                     onTaskCheckClicked = { taskId ->
                         val tomorrow = LocalDate.now().plusDays(1)
                         taskViewModel.onTaskCheckClickedForDate(taskId, tomorrow) {
-                            // 🔥 ОБНОВЛЯЕМ ПОСЛЕ ИЗМЕНЕНИЯ СТАТУСА
-                            taskViewModel.forceRefresh()
+
                         }
                         Log.d("UserScreen", "✅ Tomorrow task $taskId status changed")
                     },
-                    onTaskEditClicked = { taskId ->
-                        // TODO: Навигация для редактирования
-                    },
+                    onTaskEditClicked = { taskId -> /* TODO */ },
                 )
             }
         }
@@ -166,22 +161,24 @@ fun UserScreen(
         }
 
         if (showCompleted) {
-            items(completedTasks, key = { "completed_${it.id}" }) { task ->
+            items(completedTasks, key = { "completed_${it.id}_${it.date}" }) { task ->
                 TaskItem(
                     task = task,
                     onTaskCheckClicked = { taskId ->
-                        // Найдем задачу в списке выполненных, чтобы получить ее дату
                         val task = completedTasks.find { it.id == taskId }
                         task?.let {
-                            taskViewModel.onTaskCheckClickedForDate(taskId, it.date) {
-                                taskViewModel.forceRefresh()
-                            }
-                            Log.d("UserScreen", "✅ Completed task $taskId status changed for date ${it.date}")
+                            val date = it.date ?: LocalDate.now()
+                            taskViewModel.onTaskCheckClickedForDate(taskId, date) { }
+                            Log.d("UserScreen", "✅ Completed task $taskId status changed for date $date")
                         }
                     },
                     onTaskEditClicked = { /* TODO */ },
+                    showDate = true
                 )
             }
         }
+
+
+
     }
 }

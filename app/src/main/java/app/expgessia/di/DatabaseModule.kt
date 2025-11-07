@@ -6,6 +6,7 @@ import app.expgessia.data.dao.CharacteristicDao
 import app.expgessia.data.dao.DailyStatsDao
 import app.expgessia.data.dao.TaskDao
 import app.expgessia.data.dao.TaskInstanceDao
+import app.expgessia.data.dao.UserCharacteristicDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -46,4 +47,8 @@ object DatabaseModule {
         return appDatabase.taskInstanceDao()
     }
 
+    @Provides
+    fun provideUserCharacteristicDao(appDatabase: AppDatabase): UserCharacteristicDao {
+        return appDatabase.userCharacteristicDao()
+    }
 }

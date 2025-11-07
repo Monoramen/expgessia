@@ -41,6 +41,8 @@
     <!-- Add new task strings -->
     <string name="label_add_new_task">Создать задачу</string>
     <string name="label_edit_task">Изменить задачу</string>
+    <string name="label_all_tasks">Все задачи</string>
+
 
     <string name="label_characeristic">Характеристика:</string>
     <string name="label_title">Заголовок</string>

@@ -1,18 +1,21 @@
 package app.expgessia.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.expgessia.domain.usecase.TaskScheduler
 import app.expgessia.domain.model.Task
 import app.expgessia.domain.model.TaskUiModel
 import app.expgessia.domain.repository.CharacteristicRepository
 import app.expgessia.domain.repository.TaskCompletionRepository
 import app.expgessia.domain.repository.TaskRepository
-import app.expgessia.domain.usecase.CompleteTaskUseCase
 import app.expgessia.utils.TimeUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -25,58 +28,101 @@ class CalendarViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
     private val taskCompletionRepository: TaskCompletionRepository,
     private val characteristicRepository: CharacteristicRepository,
-    private val completeTaskUseCase: CompleteTaskUseCase
+    private val taskScheduler: TaskScheduler,
 ) : ViewModel() {
 
+    private val _selectedDate = MutableStateFlow<LocalDate?>(null)
+    val selectedDate: StateFlow<LocalDate?> = _selectedDate
 
-    suspend fun prepareTasksForDate(date: LocalDate) {
-        taskCompletionRepository.ensureTaskInstancesForDate(date)
+    private val _dailyTasksState = MutableStateFlow<DailyTasksState>(DailyTasksState.Loading)
+    val dailyTasksState: StateFlow<DailyTasksState> = _dailyTasksState
+
+    private val _refreshTrigger = MutableStateFlow(0)
+
+    init {
+        Log.d("CalendarViewModel", "🔄 Initializing CalendarViewModel")
+
+        if (_selectedDate.value == null) {
+            _selectedDate.value = LocalDate.now()
+        }
+
+        // Создаём задачи для видимого диапазона
+        viewModelScope.launch {
+            val visibleStart = LocalDate.now().minusMonths(1)
+            val visibleEnd = LocalDate.now().plusMonths(1)
+            taskScheduler.ensureInstancesForDateRange(visibleStart, visibleEnd)
+        }
+
+        // ✅ Новый реактивный поток: при смене даты или refresh обновляем список
+        viewModelScope.launch {
+            combine(_selectedDate, _refreshTrigger) { date, _ -> date }
+                .filterNotNull()
+                .flatMapLatest { date ->
+                    Log.d("CalendarViewModel", "📅 Listening for task updates for $date")
+                    taskScheduler.ensureInstancesForDate(date)
+                    getTasksForDateStream(date)
+                }
+                .collect { tasks ->
+                    _dailyTasksState.value = DailyTasksState.Success(tasks)
+                    Log.d("CalendarViewModel", "📊 Updated ${tasks.size} tasks for selected date")
+                }
+        }
     }
+
+
 
     fun onDayClicked(date: LocalDate) {
         viewModelScope.launch {
-            prepareTasksForDate(date)
+            Log.d("CalendarViewModel", "📅 Day clicked: $date")
+            _selectedDate.value = date
         }
     }
 
-    // 🔥 ДОБАВЛЕНО: Метод для переключения статуса задачи в календаре
-    fun onTaskCheckClickedForDate(taskId: Long, date: LocalDate, onComplete: (() -> Unit)? = null) {
+    fun initializeCalendar(visibleMonth: LocalDate) {
         viewModelScope.launch {
-            try {
-                val startOfDayMillis = TimeUtils.localDateToStartOfDayMillis(date)
-                val isCompleted = taskCompletionRepository.isTaskCompletedForDate(taskId, startOfDayMillis)
+            val startDate = visibleMonth.minusMonths(1).withDayOfMonth(1)
+            val endDate = visibleMonth.plusMonths(1).withDayOfMonth(visibleMonth.plusMonths(1).lengthOfMonth())
 
-                android.util.Log.d("CalendarViewModel", "🔄 Changing task $taskId status for $date (currently completed: $isCompleted)")
-
-                if (isCompleted) {
-                    taskCompletionRepository.undoCompleteTask(taskId)
-                    android.util.Log.d("CalendarViewModel", "📝 Task $taskId marked as NOT completed for $date")
-                } else {
-                    // Используем CompleteTaskUseCase для выполнения задачи
-                    completeTaskUseCase(taskId, System.currentTimeMillis())
-                    android.util.Log.d("CalendarViewModel", "✅ Task $taskId marked as completed for $date")
-                }
-                onComplete?.invoke()
-            } catch (e: Exception) {
-                android.util.Log.e("CalendarViewModel", "Failed to change task status for date", e)
-            }
+            Log.d("CalendarViewModel", "📅 Initializing calendar with range: $startDate - $endDate")
+            taskScheduler.ensureInstancesForDateRange(startDate, endDate)
         }
     }
 
-    // 🔥 ИСПРАВЛЕНО: Убираем дублирующий метод
-    fun getTasksForDate(date: LocalDate): Flow<List<TaskUiModel>> {
-        return taskCompletionRepository.getTasksForCalendarDate(date).map { taskWithInstanceList ->
-            taskWithInstanceList.map { taskWithInstance ->
+
+    fun ensureInstancesAndRefresh(date: LocalDate) {
+        viewModelScope.launch {
+            Log.d("CalendarViewModel", "🔄 Ensuring instances and refreshing for date: $date")
+            _selectedDate.value = date
+
+            // 🔥 ТОЛЬКО ОДИН вызов - через TaskScheduler
+            taskScheduler.ensureInstancesForDate(date)
+
+            _refreshTrigger.value += 1
+            Log.d("CalendarViewModel", "✅ Instances ensured and data refreshed for $date")
+        }
+    }
+
+    private fun getTasksForDateStream(date: LocalDate): Flow<List<TaskUiModel>> {
+        return combine(
+            taskCompletionRepository.getTasksForCalendarDate(date),
+            taskCompletionRepository.getCompletedTasksInDateRange(date, date),
+            _refreshTrigger
+        ) { taskWithInstances, completedInstances, _ -> // ← добавлен refreshTrigger
+            val completedTaskIds = completedInstances.map { it.taskId }.toSet()
+
+            taskWithInstances.map { taskWithInstance ->
                 val iconName = taskWithInstance.task.let { task ->
                     characteristicRepository.getCharacteristicById(task.characteristicId)?.iconResName ?: ""
                 }
+
+                val isCompleted = completedTaskIds.contains(taskWithInstance.task.id)
 
                 TaskUiModel(
                     id = taskWithInstance.task.id,
                     title = taskWithInstance.task.title,
                     description = taskWithInstance.task.description,
                     xpReward = taskWithInstance.task.xpReward,
-                    isCompleted = taskWithInstance.taskInstance?.isCompleted ?: false,
+                    isCompleted = isCompleted,
                     characteristicIconResName = iconName,
                     date = date
                 )
@@ -85,6 +131,41 @@ class CalendarViewModel @Inject constructor(
     }
 
 
+    fun onTaskCheckClickedForDate(taskId: Long, date: LocalDate) {
+        viewModelScope.launch {
+            try {
+                val startOfDayMillis = TimeUtils.localDateToStartOfDayMillis(date)
+                val isCompleted = taskCompletionRepository.isTaskCompletedForDate(taskId, startOfDayMillis)
+
+                Log.d("CalendarViewModel", "🔄 Changing task $taskId status for $date (currently completed: $isCompleted)")
+
+                if (isCompleted) {
+                    taskCompletionRepository.undoCompleteTaskForDate(taskId, date)
+                    Log.d("CalendarViewModel", "📝 Task $taskId marked as NOT completed for $date")
+                } else {
+                    val completionTime = startOfDayMillis
+                    taskCompletionRepository.completeTask(taskId, completionTime)
+                    Log.d("CalendarViewModel", "✅ Task $taskId marked as completed for $date at $completionTime")
+                }
+
+                // 🔥 УБЕДИТЕСЬ, что refreshTrigger обновляется
+                _refreshTrigger.value++
+
+            } catch (e: Exception) {
+                Log.e("CalendarViewModel", "Failed to change task status for date", e)
+            }
+        }
+    }
+
+
+
+
+
+    sealed class DailyTasksState {
+        object Loading : DailyTasksState()
+        data class Success(val tasks: List<TaskUiModel>) : DailyTasksState()
+        data class Error(val message: String) : DailyTasksState()
+    }
 
     fun getTasksForMonth(month: LocalDate): Flow<Map<LocalDate, List<Task>>> {
         return taskRepository.getRepeatingTasks()
@@ -107,14 +188,14 @@ class CalendarViewModel @Inject constructor(
             }
     }
 
-    private fun getCompletedTasksForMonth(month: LocalDate): Flow<Map<LocalDate, List<Long>>> {
+    fun getCompletedTasksForMonth(month: LocalDate): Flow<Map<LocalDate, List<Long>>> {
         val startDate = month.withDayOfMonth(1)
         val endDate = month.withDayOfMonth(month.lengthOfMonth())
 
         return taskCompletionRepository.getCompletedTasksInDateRange(startDate, endDate)
             .map { completedInstances ->
                 completedInstances.groupBy { instance ->
-                    LocalDate.ofEpochDay(instance.completedAt!! / (24 * 60 * 60 * 1000))
+                    TimeUtils.millisToLocalDate(instance.completedAt!!)
                 }.mapValues { (_, instances) ->
                     instances.map { it.taskId }
                 }
@@ -129,4 +210,18 @@ class CalendarViewModel @Inject constructor(
             tasks to completed
         }
     }
+
+
+    fun setSelectedDateFromCarousel(date: LocalDate) {
+        viewModelScope.launch {
+            Log.d("CalendarViewModel", "📅 Date selected from carousel: $date")
+            _selectedDate.value = date
+
+            taskScheduler.ensureInstancesForDate(date)
+
+            _refreshTrigger.value += 1
+            Log.d("CalendarViewModel", "✅ Carousel date set and instances ensured for $date")
+        }
+    }
+
 }

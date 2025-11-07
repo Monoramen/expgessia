@@ -16,7 +16,7 @@ import app.expgessia.data.converter.TaskConverters // Импортируем н�
         childColumns = ["characteristic_id"],
         onDelete = ForeignKey.CASCADE
     )]
-    , indices = [Index("characteristic_id")] // Добавьте это
+    , indices = [Index("characteristic_id")]
 )
 
 @TypeConverters(TaskConverters::class)
@@ -24,20 +24,13 @@ data class TaskEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val title: String,
-    // Добавлено:
     val description: String,
-
     @ColumnInfo(name = "characteristic_id")
     val characteristicId: Int,
-
-    // Добавлено: Режим повторения (хранится как String, обрабатывается конвертером)
     @ColumnInfo(name = "repeat_mode")
     val repeatMode: String,
-
-    // Добавлено: Дополнительные детали повторения (например, "пн, ср, пт")
     @ColumnInfo(name = "repeat_details")
     val repeatDetails: String? = null,
-
     @ColumnInfo(name = "xp_reward")
     val xpReward: Int,
 

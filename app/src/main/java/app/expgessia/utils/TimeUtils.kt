@@ -45,11 +45,12 @@ object TimeUtils {
      * в системной временной зоне.
      * Необходим для запросов к TaskInstanceEntity по scheduled_for.
      */
+// В TimeUtils.kt - убедитесь, что метод работает правильно
     fun localDateToStartOfDayMillis(date: LocalDate): Long {
-        return date.atStartOfDay(userZoneId) // LocalDate + ZoneId -> ZonedDateTime (00:00:00)
-            .toInstant() // ZonedDateTime -> Instant
-            .toEpochMilli() // Instant -> Long
+        return date.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
+
+
     fun formatTimestampToDate(timestamp: Long, pattern: String = "d MMM yyyy"): String {
         return Instant.ofEpochMilli(timestamp)
             .atZone(userZoneId)
@@ -57,9 +58,7 @@ object TimeUtils {
     }
 
     fun millisToLocalDate(millis: Long): LocalDate {
-        return Instant.ofEpochMilli(millis)
-            .atZone(userZoneId)
-            .toLocalDate()
+        return Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
     }
 
     fun isToday(timestamp: Long): Boolean {

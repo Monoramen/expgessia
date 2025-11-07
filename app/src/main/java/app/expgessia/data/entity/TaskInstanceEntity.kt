@@ -30,11 +30,11 @@ data class TaskInstanceEntity(
     val scheduledFor: Long? = null,
 
     @ColumnInfo(name = "is_completed")
-    val isCompleted: Boolean = false,
+    var isCompleted: Boolean = false,
 
     @ColumnInfo(name = "completed_at")
-    val completedAt: Long? = null,
+    var completedAt: Long? = null,
 
     @ColumnInfo(name = "xp_earned")
-    val xpEarned: Int = 0,
+    var xpEarned: Int = 0,
 )

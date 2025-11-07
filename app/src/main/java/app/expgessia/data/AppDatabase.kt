@@ -12,19 +12,21 @@ import app.expgessia.data.dao.CharacteristicDao
 import app.expgessia.data.dao.DailyStatsDao
 import app.expgessia.data.dao.TaskDao
 import app.expgessia.data.dao.TaskInstanceDao
+import app.expgessia.data.dao.UserCharacteristicDao
 import app.expgessia.data.dao.UserDao
 import app.expgessia.data.entity.CharacteristicEntity
 import app.expgessia.data.entity.DailyStatsEntity
 import app.expgessia.data.entity.TaskEntity
 import app.expgessia.data.entity.TaskInstanceEntity
+import app.expgessia.data.entity.UserCharacteristicEntity
 import app.expgessia.data.entity.UserEntity
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 @Database(
     entities = [UserEntity::class,
-        CharacteristicEntity::class, TaskEntity::class, DailyStatsEntity::class, TaskInstanceEntity::class],
-    version = 1,
+        CharacteristicEntity::class, TaskEntity::class, DailyStatsEntity::class, TaskInstanceEntity::class, UserCharacteristicEntity::class],
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(DateConverter::class)
@@ -39,6 +41,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun dailyStatsDao(): DailyStatsDao
 
     abstract fun taskInstanceDao(): TaskInstanceDao
+
+    abstract fun userCharacteristicDao(): UserCharacteristicDao
 
     companion object {
         private const val TAG = "AppDatabase"

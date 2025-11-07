@@ -3,6 +3,7 @@ package app.expgessia.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.expgessia.domain.usecase.TaskScheduler
 import app.expgessia.domain.mapper.TaskWithInstanceMapper
 import app.expgessia.domain.model.Characteristic
 import app.expgessia.domain.model.Task
@@ -16,13 +17,11 @@ import app.expgessia.utils.TimeUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -40,6 +39,7 @@ class TaskViewModel @Inject constructor(
     private val taskCompletionRepository: TaskCompletionRepository,
     private val dailyStatsRepository: DailyStatsRepository,
     private val taskWithInstanceMapper: TaskWithInstanceMapper,
+    private val taskScheduler: TaskScheduler
 ) : ViewModel() {
 
     private val _allTasks = MutableStateFlow<TaskState>(TaskState.Loading)
@@ -53,35 +53,46 @@ class TaskViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    private val _todayTasks = MutableStateFlow<List<TaskUiModel>>(emptyList())
-    val todayTasksFlow: Flow<List<TaskUiModel>> = _todayTasks
-    val tasksUiState: StateFlow<List<TaskUiModel>> =
-        _todayTasks.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
+    private val combinedTasksFlow = combine(
+        getTodayTasks(),
+        getTomorrowTasks(),
+        getCompletedTasks()
+    ) { today, tomorrow, completed ->
+        TaskState.Success(
+            todayTasks = today,
+            tomorrowTasks = tomorrow,
+            completedTasks = completed
         )
-    private val _tomorrowTasks = MutableStateFlow<List<TaskUiModel>>(emptyList())
-    val tomorrowTasksFlow: Flow<List<TaskUiModel>> = _tomorrowTasks
-    private val _completedTasks = MutableStateFlow<List<TaskUiModel>>(emptyList())
-    val completedTasksFlow: Flow<List<TaskUiModel>> = _completedTasks
+    }
+
 
     init {
         Log.d("TaskViewModel", "🔄 Initializing TaskViewModel")
-        ensureTasksAreScheduled()
+
+        viewModelScope.launch {
+            combinedTasksFlow.collect { taskState ->
+                _allTasks.value = taskState
+            }
+        }
+
+
     }
+
     fun syncAllTasks() {
         viewModelScope.launch {
-            ensureTasksAreScheduled()
-            // 🔥 ДОБАВЛЯЕМ: Создаем инстансы на завтра
-            ensureTomorrowInstances()
-            forceRefresh()
+            taskScheduler.ensureInstancesForDate(date = LocalDate.now())
+            taskScheduler.ensureInstancesForDate(date = LocalDate.now().plusDays(1))
+
         }
     }
 
 
-
-
+    fun forceRefresh() {
+        viewModelScope.launch {
+            taskCompletionRepository.refreshStats()
+            dailyStatsRepository.refreshStats()
+        }
+    }
 
 
     sealed class TaskState {
@@ -94,7 +105,6 @@ class TaskViewModel @Inject constructor(
 
         data class Error(val message: String) : TaskState()
     }
-    
 
 
 
@@ -102,7 +112,6 @@ class TaskViewModel @Inject constructor(
         return taskCompletionRepository.getTodayActiveTaskDetailsStream(
             TimeUtils.calculateStartOfDay(System.currentTimeMillis())
         ).map { taskWithInstanceList ->
-            // 🔥 Теперь просто маппим без фильтрации
             taskWithInstanceList.map { taskWithInstance ->
                 val iconName = getCharacteristicIconName(taskWithInstance.task.characteristicId)
                 TaskUiModel(
@@ -110,7 +119,6 @@ class TaskViewModel @Inject constructor(
                     title = taskWithInstance.task.title,
                     description = taskWithInstance.task.description,
                     xpReward = taskWithInstance.task.xpReward,
-                    // 🔥 Берем актуальный статус из инстанса
                     isCompleted = taskWithInstance.taskInstance?.isCompleted ?: false,
                     characteristicIconResName = iconName,
                     date = LocalDate.now()
@@ -120,7 +128,8 @@ class TaskViewModel @Inject constructor(
     }
 
     private fun getTomorrowTasks(): Flow<List<TaskUiModel>> {
-        val tomorrowStart = TimeUtils.calculateStartOfDay(System.currentTimeMillis() + TimeUtils.DAY_IN_MILLIS)
+        val tomorrowStart =
+            TimeUtils.calculateStartOfDay(System.currentTimeMillis() + TimeUtils.DAY_IN_MILLIS)
 
         return taskCompletionRepository.getTomorrowScheduledTaskDetailsStream(tomorrowStart)
             .map { taskWithInstanceList ->
@@ -131,7 +140,6 @@ class TaskViewModel @Inject constructor(
                         title = taskWithInstance.task.title,
                         description = taskWithInstance.task.description,
                         xpReward = taskWithInstance.task.xpReward,
-                        // 🔥 ИСПРАВИТЬ: Брать актуальный статус из инстанса
                         isCompleted = taskWithInstance.taskInstance?.isCompleted ?: false,
                         characteristicIconResName = iconName,
                         date = LocalDate.now().plusDays(1)
@@ -140,10 +148,16 @@ class TaskViewModel @Inject constructor(
             }
     }
 
+
     private fun getCompletedTasks(): Flow<List<TaskUiModel>> {
         return taskCompletionRepository.getCompletedTaskInstancesStream().map { instances ->
             instances.map { instance ->
-                val task = runBlocking { taskRepository.getTaskById(instance.taskId) } // This is not ideal, but will work for now
+                val task = runBlocking { taskRepository.getTaskById(instance.taskId) }
+
+                val safeDate = instance.completedAt?.let {
+                    runCatching { TimeUtils.millisToLocalDate(it) }.getOrNull()
+                } ?: LocalDate.now()
+
                 TaskUiModel(
                     id = instance.taskId,
                     title = task?.title ?: "Задача ${instance.taskId}",
@@ -153,19 +167,16 @@ class TaskViewModel @Inject constructor(
                     characteristicIconResName = task?.let {
                         runBlocking { characteristicRepository.getCharacteristicById(it.characteristicId)?.iconResName }
                     } ?: "",
-                    date = instance.completedAt?.let { TimeUtils.millisToLocalDate(it) } ?: LocalDate.now()
+                    date = safeDate
                 )
-            }.also { tasks ->
-                Log.d("TaskViewModel", "✅ Completed tasks today: ${tasks.size}")
             }
         }
     }
 
+
     private suspend fun getCharacteristicIconName(characteristicId: Int): String {
         return characteristicRepository.getCharacteristicById(characteristicId)?.iconResName ?: ""
     }
-
-
 
 
     fun onDeleteTask(taskId: Long, onComplete: (() -> Unit)? = null) {
@@ -182,11 +193,13 @@ class TaskViewModel @Inject constructor(
             }
         }
     }
+
     suspend fun getTaskById(taskId: Long): Task? {
         return withContext(Dispatchers.IO) {
             taskRepository.getTaskById(taskId)
         }
     }
+
     fun onAddTask(task: Task) {
         viewModelScope.launch {
             try {
@@ -195,13 +208,14 @@ class TaskViewModel @Inject constructor(
 
                 // 🔥 ВАЖНО: Создаем инстансы и ОБЯЗАТЕЛЬНО создаем завтрашние
                 taskCompletionRepository.createTaskInstancesForTask(task.id)
-                ensureTomorrowInstances()
+                taskScheduler.ensureInstancesForDate(LocalDate.now())
 
             } catch (e: Exception) {
                 Log.e("TaskViewModel", "Failed to save task", e)
             }
         }
     }
+
     fun onUpdateTask(task: Task) {
         viewModelScope.launch {
             try {
@@ -210,7 +224,7 @@ class TaskViewModel @Inject constructor(
 
                 // 🔥 ПЕРЕСОЗДАЕМ инстансы при обновлении и создаем завтрашние
                 taskCompletionRepository.createTaskInstancesForTask(task.id)
-                ensureTomorrowInstances()
+                taskScheduler.ensureInstancesForDate(LocalDate.now())
 
             } catch (e: Exception) {
                 Log.e("TaskViewModel", "Failed to update task", e)
@@ -219,98 +233,45 @@ class TaskViewModel @Inject constructor(
     }
 
 
-    // В TaskViewModel.kt - обновите метод onTaskCheckClickedForDate
     fun onTaskCheckClickedForDate(taskId: Long, date: LocalDate, onComplete: (() -> Unit)? = null) {
         viewModelScope.launch {
             try {
                 val startOfDayMillis = TimeUtils.localDateToStartOfDayMillis(date)
-                val isCompleted = taskCompletionRepository.isTaskCompletedForDate(taskId, startOfDayMillis)
+                val isCompleted =
+                    taskCompletionRepository.isTaskCompletedForDate(taskId, startOfDayMillis)
 
-                Log.d("TaskViewModel", "🔄 Changing task $taskId status for $date (currently completed: $isCompleted)")
+                Log.d(
+                    "TaskViewModel",
+                    "🔄 Changing task $taskId status for $date (currently completed: $isCompleted)"
+                )
 
                 if (isCompleted) {
-                    taskCompletionRepository.undoCompleteTask(taskId)
+                    taskCompletionRepository.undoCompleteTaskForDate(taskId, date)
                     Log.d("TaskViewModel", "📝 Task $taskId marked as NOT completed for $date")
                 } else {
-                    completeTaskUseCase(taskId, System.currentTimeMillis())
+                    // 🔥 ВАЖНО: Всегда используем completeTask с правильной датой
+                    val completionTime = if (date.isAfter(LocalDate.now())) {
+                        // Для будущих дат используем начало этого дня как время выполнения
+                        startOfDayMillis
+                    } else {
+                        // Для сегодняшнего дня используем текущее время
+                        System.currentTimeMillis()
+                    }
+                    taskCompletionRepository.completeTask(taskId, completionTime)
                     Log.d("TaskViewModel", "✅ Task $taskId marked as completed for $date")
                 }
 
                 onComplete?.invoke()
+                forceRefresh()
             } catch (e: Exception) {
-                Log.e("TaskViewModel", "Failed to change task status for date", e)
+                Log.e("TaskViewModel", "❌ Failed to change task status", e)
             }
         }
     }
 
-    // 🔥 УБИРАЕМ лишнюю задержку в forceRefresh
-
-
-    fun onTaskCheckClicked(taskId: Long, onComplete: (() -> Unit)? = null) {
-        onTaskCheckClickedForDate(taskId, LocalDate.now(), onComplete)
-    }
 
 
 
 
-
-
-
-    private fun ensureTasksAreScheduled() {
-        viewModelScope.launch {
-            try {
-                Log.d("TaskViewModel", "🔄 Ensuring daily task instances...")
-                taskCompletionRepository.ensureDailyTaskInstances(System.currentTimeMillis())
-                Log.d("TaskViewModel", "✅ Daily task instances ensured")
-                // Принудительно обновляем данные после создания инстансов
-                refreshData()
-            } catch (e: Exception) {
-                Log.e("TaskViewModel", "❌ Failed to ensure daily task instances", e)
-            }
-        }
-    }
-
-    private suspend fun ensureTomorrowInstances() {
-        try {
-            val tomorrow = LocalDate.now().plusDays(1)
-            taskCompletionRepository.ensureTaskInstancesForDate(tomorrow)
-            Log.d("TaskViewModel", "✅ Tomorrow instances ensured")
-        } catch (e: Exception) {
-            Log.e("TaskViewModel", "❌ Failed to ensure tomorrow instances", e)
-        }
-    }
-    private fun refreshData() {
-        viewModelScope.launch {
-            try {
-                // Обновляем всё состояние через collectLatest или first()
-                // Чтобы избежать дублирования логики, соберём все три потока
-                _allTasks.value = TaskState.Loading
-
-                val today = getTodayTasks().first()
-                val tomorrow = getTomorrowTasks().first()
-                val completed = getCompletedTasks().first()
-
-                // Обновляем частные MutableStateFlow (если они используются отдельно в UI)
-                _todayTasks.value = today
-                _tomorrowTasks.value = tomorrow
-                _completedTasks.value = completed
-
-                // Обновляем обобщённое состояние
-                _allTasks.value = TaskState.Success(
-                    todayTasks = today,
-                    tomorrowTasks = tomorrow,
-                    completedTasks = completed
-                )
-            } catch (e: Exception) {
-                Log.e("TaskViewModel", "❌ Failed to refresh data", e)
-                _allTasks.value = TaskState.Error(e.message ?: "Unknown error")
-            }
-        }
-    }
-
-    // Публичный метод, вызываемый извне (например, из syncAllTasks())
-    fun forceRefresh() {
-        refreshData()
-    }
 
 }

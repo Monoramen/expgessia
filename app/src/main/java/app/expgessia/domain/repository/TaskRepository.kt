@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface TaskRepository {
     // CRUD для шаблонов Task (TaskEntity)
+
     fun getAllTasks(): Flow<List<Task>>
     suspend fun getTaskById(taskId: Long): Task?
     suspend fun addTask(task: Task)

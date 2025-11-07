@@ -125,4 +125,12 @@ val SmallTypography = Typography(
         lineHeight = 8.sp,
         letterSpacing = 0.3.sp
     ),
+
+    bodyMedium = TextStyle(
+        fontFamily = FalloutFontFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 10.sp,
+        lineHeight = 10.sp,
+        letterSpacing = 0.5.sp
+    ),
 )

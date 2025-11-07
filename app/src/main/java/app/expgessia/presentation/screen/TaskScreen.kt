@@ -6,6 +6,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,20 +27,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.expgessia.R
 import app.expgessia.domain.model.TaskUiModel
+import app.expgessia.presentation.ui.components.navbar.CustomTopAppBar
 import app.expgessia.presentation.viewmodel.TaskViewModel
-import app.expgessia.ui.components.RetroTaskCategoryCompact
 import app.expgessia.ui.components.TaskItem
 import java.time.LocalDate
 
 @Composable
 fun TaskRoute(
+    selectedFilter: String, // ⭐️ ПОЛУЧАЕМ ВЫБРАННЫЙ ФИЛЬТР ИЗ MAINSCREEN
     onAddTaskClicked: () -> Unit,
     onEditTaskClicked: (Long) -> Unit,
     viewModel: TaskViewModel = hiltViewModel(),
 ) {
     val tasksState by viewModel.tasksState.collectAsStateWithLifecycle()
 
-    // 🔥 Берем ВСЕ задачи из состояния
     val (todayTasks, tomorrowTasks, completedTasks) = when (tasksState) {
         is TaskViewModel.TaskState.Success -> {
             val state = tasksState as TaskViewModel.TaskState.Success
@@ -42,10 +49,18 @@ fun TaskRoute(
         else -> Triple(emptyList(), emptyList(), emptyList())
     }
 
+    // ⭐️ ФИЛЬТРАЦИЯ ПРОИСХОДИТ ЗДЕСЬ НА ОСНОВЕ ПЕРЕДАННОГО ФИЛЬТРА
+    val filteredTasks = when (selectedFilter) {
+        "Today" -> todayTasks
+        "Tomorrow" -> tomorrowTasks
+        "Completed" -> completedTasks
+        else -> todayTasks + tomorrowTasks + completedTasks // All Tasks
+    }
+
     TaskScreen(
+        filteredTasks = filteredTasks, // ⭐️ ПЕРЕДАЕМ УЖЕ ОТФИЛЬТРОВАННЫЕ ЗАДАЧИ
         todayTasks = todayTasks,
         tomorrowTasks = tomorrowTasks,
-        completedTasks = completedTasks,
         onTaskCheckClicked = { taskId ->
             viewModel.onTaskCheckClickedForDate(taskId, LocalDate.now())
         },
@@ -56,27 +71,26 @@ fun TaskRoute(
 
 @Composable
 fun TaskScreen(
-    // 💡 Принимаем ВСЕ списки задач
+    filteredTasks: List<TaskUiModel>, // ⭐️ ПОЛУЧАЕМ УЖЕ ОТФИЛЬТРОВАННЫЕ ЗАДАЧИ
     todayTasks: List<TaskUiModel>,
     tomorrowTasks: List<TaskUiModel>,
-    completedTasks: List<TaskUiModel>,
     onAddTaskClicked: () -> Unit,
     onTaskCheckClicked: (Long) -> Unit,
     onEditTaskClicked: (Long) -> Unit,
     modifier: Modifier = Modifier,
     taskViewModel: TaskViewModel = hiltViewModel(),
 ) {
-    // 🔥 Состояния для управления видимостью секций
-    var showToday by remember { mutableStateOf(true) }
-    var showTomorrow by remember { mutableStateOf(true) }
-    var showCompleted by remember { mutableStateOf(false) }
-
+    // ⭐️ УБИРАЕМ СОСТОЯНИЕ ФИЛЬТРА ИЗ ЭТОГО ЭКРАНА
 
     LaunchedEffect(Unit) {
         taskViewModel.syncAllTasks()
     }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        topBar = {
+            // ⭐️ УБИРАЕМ CUSTOMTOPAPPBAR ОТСЮДА - ТЕПЕРЬ ОН В MAINSCREEN
+        }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -88,68 +102,22 @@ fun TaskScreen(
                 bottom = paddingValues.calculateBottomPadding() + 4.dp
             )
         ) {
-            // --- СЕКЦИЯ СЕГОДНЯ ---
-            item {
-                RetroTaskCategoryCompact(
-                    title = stringResource(R.string.label_today),
-                    count = todayTasks.size,
-                    isExpanded = showToday,
-                    onToggle = { showToday = !showToday }
+            items(filteredTasks, key = { "task_${it.id}_${it.date}" }) { task ->
+                TaskItem(
+                    task = task,
+                    onTaskCheckClicked = { taskId ->
+                        when {
+                            todayTasks.any { it.id == taskId } ->
+                                onTaskCheckClicked(taskId)
+                            tomorrowTasks.any { it.id == taskId } -> {
+                                val tomorrow = LocalDate.now().plusDays(1)
+                                taskViewModel.onTaskCheckClickedForDate(taskId, tomorrow)
+                            }
+                            else -> onTaskCheckClicked(taskId)
+                        }
+                    },
+                    onTaskEditClicked = onEditTaskClicked,
                 )
-            }
-
-            if (showToday) {
-                items(todayTasks, key = { "today_${it.id}" }) { task ->
-                    TaskItem(
-                        task = task,
-                        onTaskCheckClicked = onTaskCheckClicked,
-                        onTaskEditClicked = onEditTaskClicked,
-                    )
-                }
-            }
-
-            // --- СЕКЦИЯ ЗАВТРА ---
-            item {
-                RetroTaskCategoryCompact(
-                    title = stringResource(R.string.label_tomorrow),
-                    count = tomorrowTasks.size,
-                    isExpanded = showTomorrow,
-                    onToggle = { showTomorrow = !showTomorrow }
-                )
-            }
-
-            if (showTomorrow) {
-                items(tomorrowTasks, key = { "tomorrow_${it.id}" }) { task ->
-                    TaskItem(
-                        task = task,
-                        onTaskCheckClicked = { taskId ->
-                            val tomorrow = LocalDate.now().plusDays(1)
-                            // 🔥 Для завтрашних задач используем завтрашнюю дату
-                            onTaskCheckClicked(taskId) // или можно передать отдельный обработчик
-                        },
-                        onTaskEditClicked = onEditTaskClicked,
-                    )
-                }
-            }
-
-            // --- СЕКЦИЯ ЗАВЕРШЕННЫХ ---
-            item {
-                RetroTaskCategoryCompact(
-                    title = stringResource(R.string.label_completed),
-                    count = completedTasks.size,
-                    isExpanded = showCompleted,
-                    onToggle = { showCompleted = !showCompleted }
-                )
-            }
-
-            if (showCompleted) {
-                items(completedTasks, key = { "completed_${it.id}" }) { task ->
-                    TaskItem(
-                        task = task,
-                        onTaskCheckClicked = onTaskCheckClicked,
-                        onTaskEditClicked = onEditTaskClicked,
-                    )
-                }
             }
         }
     }

@@ -7,6 +7,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.expgessia.presentation.ui.components.calendar.CalendarTasksGrid
+import app.expgessia.presentation.viewmodel.CalendarViewModel
 import app.expgessia.presentation.viewmodel.TaskViewModel
 import java.time.LocalDate
 
@@ -17,13 +18,14 @@ fun CalendarScreen(
     currentMonth: LocalDate,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit,
-    onDayClicked: (LocalDate) -> Unit,    taskViewModel: TaskViewModel = hiltViewModel(),
-
+    onDayClicked: (LocalDate) -> Unit,
+    taskViewModel: TaskViewModel = hiltViewModel(),
 ) {
-    // При переходе на UserScreen, TaskScreen, CalendarScreen
+
     LaunchedEffect(Unit) {
         taskViewModel.syncAllTasks()
     }
+
 
     CalendarTasksGrid(
         currentMonth = currentMonth,

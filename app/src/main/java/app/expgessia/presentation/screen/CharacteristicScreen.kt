@@ -34,11 +34,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import app.expgessia.R
 import app.expgessia.domain.model.Characteristic
 import app.expgessia.presentation.ui.theme.DigitLargeStyle
 import app.expgessia.presentation.viewmodel.CharacteristicViewModel
+import app.expgessia.presentation.viewmodel.UserViewModel
 import app.expgessia.ui.components.RetroFrame
 import app.expgessia.ui.components.RollerDigit
 
@@ -86,7 +86,6 @@ fun Characteristic.getLocalizedDescriptionResId(): Int {
     }
 }
 
-
 @Composable
 private fun getProcessedText(text: String, style: TextStyle): String {
     val uppercaseStyles = listOf(
@@ -108,14 +107,16 @@ private fun getProcessedText(text: String, style: TextStyle): String {
     }
 }
 
-
 @Composable
 fun CharacteristicScreen(
-    // Инъекция ViewModel через Hilt
     viewModel: CharacteristicViewModel = hiltViewModel(),
+    userViewModel: UserViewModel = hiltViewModel() // ✅ Добавляем UserViewModel
 ) {
-    // Наблюдаем за StateFlow
+    // Наблюдаем за StateFlow характеристик
     val characteristics by viewModel.characteristics.collectAsState()
+
+    // ✅ Наблюдаем за данными пользователя
+    val user by userViewModel.user.collectAsState()
 
     // Устанавливаем фон экрана в цвет фона терминала
     val screenBackground = MaterialTheme.colorScheme.background
@@ -124,39 +125,53 @@ fun CharacteristicScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(screenBackground), // Используем фон из темы
+                .background(screenBackground),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) // Используем основной цвет
-            // В реальном приложении здесь лучше показать сообщение "Нет данных"
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
     } else {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(screenBackground), // Используем фон из темы
+                .background(screenBackground),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
         ) {
             items(characteristics) { char ->
-                CharacteristicCard(char)
+                // ✅ Получаем значение характеристики из данных пользователя
+                val userValue = when (char.name.uppercase()) {
+                    "STRENGTH" -> user?.strength
+                    "PERCEPTION" -> user?.perception
+                    "ENDURANCE" -> user?.endurance
+                    "CHARISMA" -> user?.charisma
+                    "INTELLIGENCE" -> user?.intelligence
+                    "AGILITY" -> user?.agility
+                    "LUCK" -> user?.luck
+                    else -> null
+                }
+
+                CharacteristicCard(
+                    characteristic = char,
+                    userValue = userValue // ✅ Передаем значение
+                )
             }
         }
     }
 }
 
 
+
+
+
 @Composable
 fun CharacteristicCard(
     characteristic: Characteristic,
+    userValue: Int? = null, // ✅ Добавляем значение характеристики пользователя
     modifier: Modifier = Modifier,
 ) {
-
-    val level = 5 // Заглушка уровня.
-    val levelText = "0" + level.toString() // Преобразуем уровень в строку
-
     // Получаем ID ресурса динамически по имени характеристики
-    val painterResourceId = getDrawableResourceId(characteristic.name)
+    val painterResourceId = getDrawableResourceId(characteristic.iconResName)
 
     val textColor = MaterialTheme.colorScheme.onSurface
 
@@ -176,16 +191,18 @@ fun CharacteristicCard(
     val titleStyle = MaterialTheme.typography.titleSmall
     val bodyStyle = MaterialTheme.typography.bodySmall
     // Используем ваш собственный стиль для цифр, если он есть, иначе возьмем из темы
-    // Здесь я использую `DigitMediumStyle`, который вы импортировали.
     val digitStyle = DigitLargeStyle // Используем стиль, подходящий для цифр
+
+    // ✅ Форматируем значение в 3-значный формат
+    val formattedValue = userValue?.let {
+        String.format("%03d", it.coerceIn(0, 999))
+    } ?: "000"
 
     RetroFrame() {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-
             if (painterResourceId != 0) {
                 Icon(
                     painter = painterResource(id = painterResourceId),
@@ -202,7 +219,6 @@ fun CharacteristicCard(
                     tint = iconTint // Цвет иконки из темы
                 )
             }
-
 
             Spacer(modifier = Modifier.width(12.dp))
             Column(
@@ -227,28 +243,25 @@ fun CharacteristicCard(
                 )
             }
 
-            // --- НОВЫЙ БЛОК УРОВНЯ С RollerDigit ---
-            // Добавляем Spacer для визуального разделения
+            // ✅ ДОБАВЛЯЕМ БЛОК СО ЗНАЧЕНИЕМ ХАРАКТЕРИСТИКИ
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Контейнер для отображения цифр уровня в ряд
+            // Контейнер для отображения цифр значения в ряд
             Row(
-                modifier = Modifier.width(IntrinsicSize.Min), // Позволяет Row занять минимальную необходимую ширину
+                modifier = Modifier.width(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Перебираем каждую цифру в строке уровня и отображаем RollerDigit
-                levelText.forEach { digitChar ->
-
+                // Перебираем каждую цифру в форматированном значении и отображаем RollerDigit
+                formattedValue.forEach { digitChar ->
                     RollerDigit(
                         digit = digitChar,
-                        style = digitStyle, // Используем подходящий стиль текста
+                        style = digitStyle,
                         digitColor = levelDigitColor,
                         boxColor = levelBoxColor
                     )
                 }
             }
-            // --- КОНЕЦ НОВОГО БЛОКА УРОВНЯ ---
         }
     }
 }

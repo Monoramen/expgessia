@@ -51,14 +51,11 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-
-// --- КОНСТАНТЫ МАРШРУТОВ (для ясности) ---
 const val HERO_ROUTE = "hero"
 const val TASK_ROUTE = "tasks"
 const val CALENDAR_ROUTE = "calendar"
 const val STATS_ROUTE = "stats"
 
-// Маршрут для добавления/редактирования с аргументом taskId
 const val ADD_EDIT_TASK_ROUTE = "add_edit_task_route?taskId={taskId}"
 const val DAILY_TASKS_ROUTE = "daily_tasks_route?date={date}"
 
@@ -75,7 +72,7 @@ fun MainScreen(
     var topBarDate by remember { mutableStateOf(LocalDate.now()) }
     // 1. УДАЛЯЕМ taskToEditId и currentRoute (он будет из NavController)
     val taskViewModel: TaskViewModel = hiltViewModel()
-
+    var selectedTaskFilter by remember { mutableStateOf("All Tasks") }
     // Получаем текущий маршрут из NavController для TopBar и BottomBar
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: HERO_ROUTE
@@ -104,16 +101,10 @@ fun MainScreen(
                     CustomTopAppBar(
                         title = stringResource(R.string.nav_tasks),
                         navigationIcon = Icons.Filled.ArrowBackIosNew,
-                        // Навигация назад к Hero, очищая бэкстек
                         onNavigationClick = {
-                            navController.navigate(HERO_ROUTE) {
-                                popUpTo(
-                                    HERO_ROUTE
-                                ) { inclusive = true }
-                            }
+                            navController.popBackStack()
                         },
                         actions = {
-                            // ✅ Кнопка "Добавить" вызывает NavController.navigate
                             IconButton(onClick = { navigateToTask(0L) }) {
                                 Icon(
                                     imageVector = Icons.Default.Add,
@@ -135,7 +126,14 @@ fun MainScreen(
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
-                        }
+                        },
+                        // ⭐️ ПЕРЕДАЕМ СОСТОЯНИЕ ФИЛЬТРА ИЗ MAINSCREEN
+                        filterOptions = listOf("All Tasks", "Today", "Tomorrow", "Completed"),
+                        selectedFilter = selectedTaskFilter,
+                        onFilterSelected = { filter ->
+                            selectedTaskFilter = filter
+                        },
+                        showFilter = true
                     )
                 }
 
@@ -253,7 +251,6 @@ fun MainScreen(
                 }
 
 
-
                 ADD_EDIT_TASK_ROUTE.substringBefore("?") -> {
                     // Определяем, режим это редактирования или добавления, для заголовка
                     val isEditMode =
@@ -304,9 +301,10 @@ fun MainScreen(
             }
 
             composable(TASK_ROUTE) {
+                // ⭐️ ПЕРЕДАЕМ СОСТОЯНИЕ ФИЛЬТРА В TASKROUTE
                 TaskRoute(
-                    onAddTaskClicked = { }, // Оставляем пустым, так как кнопка в TopBar
-                    // ✅ Редактирование: TaskRoute вызывает навигацию
+                    selectedFilter = selectedTaskFilter,
+                    onAddTaskClicked = { navigateToTask(0L) },
                     onEditTaskClicked = { taskId -> navigateToTask(taskId) }
                 )
             }

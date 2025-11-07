@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.expgessia.R
+import app.expgessia.presentation.ui.theme.TitleTextColor
 
 /**
  * Компактный компонент категории задач в ретро-стиле.

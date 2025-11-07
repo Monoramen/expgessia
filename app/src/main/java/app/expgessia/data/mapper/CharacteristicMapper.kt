@@ -5,6 +5,7 @@ import app.expgessia.data.entity.UserEntity
 import app.expgessia.domain.model.Characteristic
 import app.expgessia.domain.model.User
 
+
 fun CharacteristicEntity.toDomain(): Characteristic = Characteristic(
     id = this.id,
     name = this.name,

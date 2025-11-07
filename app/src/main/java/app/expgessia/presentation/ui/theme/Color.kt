@@ -3,7 +3,7 @@ package app.expgessia.presentation.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // --- Цветовая палитра в стиле Fallout Terminal (Зеленый на Темном) ---
-
+val TitleTextColor = Color(0xFFFDD835) // Ярко-желтый (основной цвет текста)
 // Основные цвета
 // Неоновый зеленый для основных элементов и текста на темном фоне
 val FalloutPrimary = Color(0xFF50C115) // Яркий зеленый

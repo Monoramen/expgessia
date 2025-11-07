@@ -38,6 +38,7 @@
     <!-- Add new task strings -->
     <string name="label_add_new_task">Add new task</string>
     <string name="label_edit_task">Edit task</string>
+    <string name="label_all_tasks">All tasks</string>
 
     <string name="label_characeristic">Characteristic:</string>
     <string name="label_title">Title</string>

@@ -14,6 +14,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
+import androidx.hilt.navigation.compose.hiltViewModel
+import app.expgessia.presentation.viewmodel.CalendarViewModel
 import java.time.LocalDate
 import kotlin.math.absoluteValue
 
@@ -24,12 +26,12 @@ fun DateCarousel(
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit,
     modifier: Modifier = Modifier,
+    calendarViewModel: CalendarViewModel
 ) {
 
     val totalCount = Int.MAX_VALUE
     val initialCenterIndex = totalCount / 2
     val configuration = LocalConfiguration.current
-    val density = LocalDensity.current
 
     val itemWidthDp = 50.dp
 
@@ -38,6 +40,14 @@ fun DateCarousel(
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialIndex)
 
     val maxOffsetDp = configuration.screenWidthDp.dp / 2f // Максимальное смещение от центра
+
+// В DateCarousel.kt замените обработчик:
+
+    val onDateSelectedWithInstances: (LocalDate) -> Unit = { date ->
+        // 🔥 ИСПОЛЬЗУЕМ НОВЫЙ МЕТОД вместо ensureInstancesAndRefresh
+        calendarViewModel.setSelectedDateFromCarousel(date)
+        onDateSelected(date)
+    }
 
     LazyRow(
         state = listState,
@@ -53,11 +63,10 @@ fun DateCarousel(
                 LocalDate.now().plusDays(offsetFromCenter.toLong())
             }
 
-
             DateItem(
                 date = date,
                 isSelected = date == selectedDate,
-                onDateClicked = onDateSelected,
+                onDateClicked = onDateSelectedWithInstances, // 🔥 ИСПОЛЬЗУЕМ НОВЫЙ ОБРАБОТЧИК
             )
         }
     }

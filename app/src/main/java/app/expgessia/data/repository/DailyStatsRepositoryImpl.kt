@@ -59,11 +59,12 @@ class DailyStatsRepositoryImpl @Inject constructor(
         return taskInstanceDao.getCompletedTaskInstances()
             .map { instances ->
                 instances
-                    .filter {
-                        it.isCompleted &&
-                                it.completedAt != null &&
-                                it.completedAt >= todayStart &&
-                                it.completedAt < todayStart + TimeUtils.DAY_IN_MILLIS
+                    .filter { instance ->
+                        instance.isCompleted &&
+                                instance.completedAt?.let { completedAt ->
+                                    completedAt >= todayStart &&
+                                            completedAt < todayStart + TimeUtils.DAY_IN_MILLIS
+                                } == true
                     }
                     .sumOf { it.xpEarned }
             }

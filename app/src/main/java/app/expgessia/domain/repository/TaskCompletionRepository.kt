@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 interface TaskCompletionRepository {
-
+    suspend fun refreshStats()
     suspend fun completeTask(taskId: Long, completionTimestamp: Long)
-    suspend fun undoCompleteTask(taskId: Long)
+    suspend fun undoCompleteTaskForDate(taskId: Long, date: LocalDate)
 
-    // Функции для UI (берут данные через JOIN)
+
     fun getTodayActiveTaskDetailsStream(startOfDay: Long): Flow<List<TaskWithInstance>>
     fun getTomorrowScheduledTaskDetailsStream(startOfTomorrow: Long): Flow<List<TaskWithInstance>>
     fun getCompletedTaskInstancesStream(): Flow<List<TaskInstance>> // Для истории
@@ -21,7 +21,7 @@ interface TaskCompletionRepository {
     // Функции для статистики
     fun getTotalCompletedTasksCount(): Flow<Int>
     fun getXpEarnedByCharacteristic(characteristicId: Int): Flow<Int>
-    suspend fun ensureDailyTaskInstances(currentTime: Long)
+    suspend fun ensureTaskInstancesForDate(date: Long)
 
     suspend fun isTaskCompletedForDate(taskId: Long, date: Long): Boolean
 
@@ -30,12 +30,12 @@ interface TaskCompletionRepository {
 
     fun getTasksForCalendarDate(date: LocalDate): Flow<List<TaskWithInstance>>
 
-
-    suspend fun ensureTaskInstancesForDate(date: LocalDate)
-
-
-    // В TaskCompletionRepository.kt добавьте:
     suspend fun createTaskInstancesForTask(taskId: Long)
 
-    fun getCompletedTasksInDateRange(startDate: LocalDate, endDate: LocalDate): Flow<List<TaskInstance>>
+    fun getCompletedTasksInDateRange(
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): Flow<List<TaskInstance>>
+
+
 }

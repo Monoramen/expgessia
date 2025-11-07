@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import app.expgessia.data.entity.TaskEntity
 import app.expgessia.data.entity.TaskInstanceEntity
 import app.expgessia.data.entity.TaskWithInstance
 import kotlinx.coroutines.flow.Flow
@@ -24,26 +25,25 @@ interface TaskInstanceDao {
     @Update
     suspend fun update(instance: TaskInstanceEntity)
 
-    // Найти экземпляр задачи на сегодня/конкретный день (для логики завершения)
+
+
     @Query("""
         SELECT * FROM task_instances
-        WHERE task_id = :taskId AND scheduled_for = :startOfDay
+        WHERE task_id = :taskId AND scheduled_for = :date
         LIMIT 1
     """)
-    suspend fun getTaskInstanceForDay(taskId: Long, startOfDay: Long): TaskInstanceEntity?
+    suspend fun getTaskInstanceForDay(taskId: Long, date: Long): TaskInstanceEntity?
 
-    // Запросы, перенесенные из TaskDao:
 
-    // 1. Получение активных задач на сегодня (JOIN TaskEntity + TaskInstanceEntity)
-// В TaskInstanceDao.kt - убедитесь, что запросы возвращают правильные данные
-// В TaskInstanceDao.kt - исправленный запрос для Today задач
+
+
     @Transaction
     @Query("""
     SELECT t.*, ti.id as instance_id, ti.task_id, ti.scheduled_for, ti.is_completed, ti.completed_at, ti.xp_earned
     FROM tasks AS t
     INNER JOIN task_instances AS ti ON t.id = ti.task_id 
     WHERE ti.scheduled_for = :startOfDay
-    AND ti.is_completed = 0  -- 🔥 ДОБАВЛЕНО: показываем только НЕ завершенные
+    AND ti.is_completed = 0  -- 🔥 ТОЛЬКО НЕВЫПОЛНЕННЫЕ
     ORDER BY t.id ASC
 """)
     fun getTodayTasksWithInstance(startOfDay: Long): Flow<List<TaskWithInstance>>
@@ -55,6 +55,7 @@ interface TaskInstanceDao {
         FROM tasks AS t
         INNER JOIN task_instances AS ti ON t.id = ti.task_id 
         WHERE ti.scheduled_for = :startOfTomorrow
+        AND ti.is_completed = 0  -- 🔥 ТОЛЬКО НЕВЫПОЛНЕННЫЕ
         ORDER BY t.id ASC
     """)
     fun getTomorrowScheduledTasksWithInstance(startOfTomorrow: Long): Flow<List<TaskWithInstance>>
@@ -65,6 +66,17 @@ interface TaskInstanceDao {
         ORDER BY completed_at DESC
     """)
     fun getCompletedTaskInstances(): Flow<List<TaskInstanceEntity>>
+
+
+
+    @Query("""
+    SELECT * FROM task_instances 
+    WHERE task_id = :taskId 
+    AND scheduled_for = :date 
+    AND is_completed = 1
+    LIMIT 1
+""")
+    suspend fun getCompletedInstanceForDate(taskId: Long, date: Long): TaskInstanceEntity?
 
     @Transaction
     @Query("""
@@ -96,8 +108,8 @@ interface TaskInstanceDao {
     @Query("""
     SELECT t.*, ti.id as instance_id, ti.task_id, ti.scheduled_for, ti.is_completed, ti.completed_at, ti.xp_earned
     FROM tasks AS t
-    INNER JOIN task_instances AS ti ON t.id = ti.task_id 
-    WHERE ti.scheduled_for = :date
+    LEFT JOIN task_instances AS ti ON t.id = ti.task_id AND ti.scheduled_for = :date
+    WHERE (ti.scheduled_for = :date OR ti.scheduled_for IS NULL)
     ORDER BY t.id ASC
 """)
     fun getTasksWithInstancesByDate(date: Long): Flow<List<TaskWithInstance>>
@@ -107,9 +119,10 @@ interface TaskInstanceDao {
     suspend fun hasInstanceForDate(taskId: Long, date: Long): Boolean
 
 
-    // В TaskInstanceDao.kt
     @Query("SELECT COUNT(*) FROM task_instances WHERE task_id = :taskId")
     suspend fun hasAnyInstanceForTask(taskId: Long): Boolean
+
+
 
     @Query("DELETE FROM task_instances WHERE task_id = :taskId AND scheduled_for >= :startDate")
     suspend fun deleteFutureInstances(taskId: Long, startDate: Long)
@@ -121,4 +134,8 @@ interface TaskInstanceDao {
     ORDER BY completed_at DESC
 """)
     fun getCompletedInstancesInDateRange(startDate: Long, endDate: Long): Flow<List<TaskInstanceEntity>>
+
+
+
+
 }

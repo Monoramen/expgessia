@@ -43,7 +43,18 @@ import androidx.compose.ui.unit.dp
 import app.expgessia.R
 import app.expgessia.domain.model.User
 import app.expgessia.presentation.ui.theme.DigitMediumStyle
+import app.expgessia.presentation.ui.theme.TitleTextColor
 
+// Константы для ID характеристик (добавьте в отдельный файл или здесь)
+object CharacteristicIds {
+    const val STRENGTH = 1
+    const val PERCEPTION = 2
+    const val ENDURANCE = 3
+    const val CHARISMA = 4
+    const val INTELLIGENCE = 5
+    const val AGILITY = 6
+    const val LUCK = 7
+}
 
 @Composable
 fun UserCard(
@@ -58,7 +69,6 @@ fun UserCard(
     val onCardColor = MaterialTheme.colorScheme.onPrimaryContainer
     val heroBackground = Color(0xFFACA452)
     val primaryColor = MaterialTheme.colorScheme.primary
-
 
     if (user == null) {
         Box(
@@ -111,6 +121,7 @@ fun UserCard(
                 } else {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.clickable {
                             isEditingName = true; editedName = user.name
                         }
@@ -118,7 +129,7 @@ fun UserCard(
                         Text(
                             text = user.name.uppercase(),
                             style = MaterialTheme.typography.titleLarge,
-                            color = Color(0xFFACA452),
+                            color = TitleTextColor,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -168,7 +179,6 @@ fun UserCard(
 
                 Spacer(modifier = Modifier.width(10.dp))
 
-
                 // 2. БЛОК: LVL / MONEY / EXP (Без изменений, он сам задает высоту)
                 RetroFrame(
                     modifier = Modifier
@@ -202,19 +212,15 @@ fun UserCard(
             Spacer(modifier = Modifier.height(10.dp))
 
             // ---------- Блок характеристик ----------
-
             RetroFrame() {
                 CharacteristicsGrid(user)
             }
-
         }
     }
 }
 
-
 @Composable
 private fun StatItem(labelResId: Int, value: Int) {
-
     val label = stringResource(id = labelResId)
 
     // ⭐️ Используем Row для горизонтального размещения
@@ -242,7 +248,6 @@ private fun StatItem(labelResId: Int, value: Int) {
     }
 }
 
-
 @Composable
 private fun CharacteristicsGrid(user: User) {
     // Внутренний отступ, чтобы текст не сливался с рамкой
@@ -263,7 +268,7 @@ private fun CharacteristicsGrid(user: User) {
                 .weight(1f)
                 .padding(end = 16.dp) // Занимает половину ширины
         ) {
-            // ✅ Используем strings
+            // ✅ Используем геттеры из User модели
             StatItem(R.string.stat_strength, user.strength)
             StatItem(R.string.stat_perception, user.perception)
             StatItem(R.string.stat_endurance, user.endurance)
@@ -284,7 +289,7 @@ private fun CharacteristicsGrid(user: User) {
                 .weight(1f)
                 .padding(start = 16.dp) // Отступ от разделителя
         ) {
-            // ✅ Используем новые ID строк
+            // ✅ Используем геттеры из User модели
             StatItem(R.string.stat_intelligence, user.intelligence)
             StatItem(R.string.stat_agility, user.agility)
             StatItem(R.string.stat_luck, user.luck)

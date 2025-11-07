@@ -6,8 +6,8 @@ data class TaskInstance(
     val id: Long = 0,
     val taskId: Long,
     val scheduledFor: Long? = null,
-    val isCompleted: Boolean = false,
-    val completedAt: Long? = null,
-    val xpEarned: Int = 0,
+    var isCompleted: Boolean = false,
+    var completedAt: Long? = null,
+    var xpEarned: Int = 0,
 )
 

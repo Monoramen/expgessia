@@ -14,9 +14,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.expgessia.presentation.ui.theme.TitleTextColor
 
 // --- Цвета (Общие для Ретро-Стиля) ---
-val TitleTextColor = Color(0xFFFDD835) // Ярко-желтый (основной цвет текста)
+
 val TitleShadowColor = Color(0xFF212121) // Очень темный серый (для эффекта тени)
 val ContainerBackgroundColor = Color(0xFF424242) // Темно-серый фон контейнера
 val RetroAccentColor = Color(0xFFE53935) // Красный акцент для иконок/маркеров

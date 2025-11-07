@@ -3,10 +3,13 @@ package app.expgessia.ui.components
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,6 +31,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.expgessia.domain.model.TaskUiModel
+import app.expgessia.presentation.ui.theme.SmallTypography
+import app.expgessia.presentation.ui.theme.TitleTextColor
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 // components/TaskItem.kt
 @Composable
@@ -35,8 +42,11 @@ fun TaskItem(
     task: TaskUiModel,
     onTaskCheckClicked: (Long) -> Unit, // Колбэк для завершения/отмены
     onTaskEditClicked: (Long) -> Unit, // Колбэк для редактирования
-    modifier: Modifier = Modifier
+    showDate: Boolean = false,
+    modifier: Modifier = Modifier,
+
 ) {
+    val dateFormatter = DateTimeFormatter.ofPattern("EEE, d MMM", Locale.getDefault())
     val context = LocalContext.current
 
     val iconResId = remember(task.characteristicIconResName) {
@@ -114,26 +124,43 @@ fun TaskItem(
             }
             Spacer(modifier = Modifier.width(12.dp))
 
-            // 💡 УДАЛЕНО: Блок с наградой XP (Badge/Chip)
-
-            // 💡 УДАЛЕНО: Кнопка Редактировать
-
-            // Кнопка/Иконка статуса завершения
-            IconButton(
-                // 💡 ПЕРЕДАЕМ ID для смены статуса
-                onClick = {
-                    Log.d("TaskItem", "📱 Check clicked for task ${task.id}, completed: ${task.isCompleted}")
-                    onTaskCheckClicked(task.id)
-                },
-                modifier = Modifier.size(40.dp)
+            Box(
+                contentAlignment = Alignment.TopCenter
             ) {
-                Icon(
-                    imageVector = if (task.isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-                    contentDescription = if (task.isCompleted) "Завершена" else "Завершить",
-                    tint = if (task.isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(28.dp)
-                )
+                // Используем Column для галочки + фиксированный spacer
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top
+                ) {
+                    IconButton(
+                        onClick = { onTaskCheckClicked(task.id) },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (task.isCompleted) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                            contentDescription = if (task.isCompleted) "Завершена" else "Завершить",
+                            tint = if (task.isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp)) // Отступ между галочкой и датой
+
+                    if (showDate) {
+                        Text(
+                            text = task.date.format(dateFormatter),
+                            style = SmallTypography.bodyMedium,
+                            color = TitleTextColor
+                        )
+                    }
+                }
             }
+
+
+
+
+
+
         }
     }
 }
